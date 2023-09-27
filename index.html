@@ -142,7 +142,7 @@
 					<th>Total Fee(s) Paid</th>
 					<th>Total Investment Value</th>
 					<th>Expense Ratio (%)</th> <!-- Add the "Expense Ratio (%)" column -->
-
+					<th>Investment Gains</th> <!-- Add the "Expense Ratio (%)" column -->
 				</tr>
 			</thead>
 			<tbody>
@@ -587,6 +587,9 @@ function updateInvestmentSummaryTable() {
         // Get the end value of the investment (value at the end of the specified number of years)
         const endValue = parseFloat(investmentsData[i][years - 1].value);
 
+        // Calculate investment gains
+        const investmentGains = endValue - (totalEmployeeContribution + totalEmployerContribution + totalExpenseFee);
+
         // Retrieve the expense ratio for this investment
         const expenseRatio = parseFloat(expenseRatios[i]);
 
@@ -594,12 +597,12 @@ function updateInvestmentSummaryTable() {
         const expenseRatioPercentage = isNaN(expenseRatio) ? 'N/A' : (expenseRatio * 100).toFixed(2) + '%';
 
         // Create and append the updated row
-        addInvestmentSummaryRow(investmentName, totalExpenseFee, endValue, expenseRatioPercentage, totalEmployeeContribution, totalEmployerContribution);
+        addInvestmentSummaryRow(investmentName, totalEmployeeContribution, totalEmployerContribution, totalExpenseFee, endValue, expenseRatioPercentage, investmentGains);
     }
 }
 
 // Function to add a row to the Investment Summary table
-function addInvestmentSummaryRow(investmentName, totalExpenseFee, endValue, expenseRatioPercentage, totalEmployeeContribution, totalEmployerContribution) {
+function addInvestmentSummaryRow(investmentName, totalEmployeeContribution, totalEmployerContribution, totalExpenseFee, endValue, expenseRatioPercentage, investmentGains) {
     const summaryTable = document.getElementById("investmentSummaryTable").querySelector("tbody");
     const newRow = document.createElement("tr");
     newRow.innerHTML = `
@@ -609,10 +612,10 @@ function addInvestmentSummaryRow(investmentName, totalExpenseFee, endValue, expe
         <td>${totalExpenseFee.toFixed(2)}</td>
         <td>${endValue.toFixed(2)}</td>
         <td>${expenseRatioPercentage}</td>
+        <td>${investmentGains.toFixed(2)}</td> <!-- Investment Gains Column -->
     `;
     summaryTable.appendChild(newRow);
 }
-
 
 // Function to calculate the total employee contribution for a specific investment
 function calculateTotalEmployeeContribution(investmentIndex) {
