@@ -153,11 +153,6 @@
 		<button onclick="exportTableToExcel('investmentSummaryTable', 'InvestmentSummary')">Download asExcel</button>
 	</div>
 
-    <div id="graph-container">
-        <h2>Total Amount and Expense Fee by Year</h2>
-        <canvas id="barChart"></canvas>
-    </div>
-
     <div class="container">
         <h2>Total Amounts and Expense Fees by Year (Table)</h2>
         <table id="resultTable">
@@ -176,6 +171,11 @@
 		<button onclick="exportTableToExcel('combinedResultTable', 'Combined_Investments')">Download as Excel</button>
     </div>
 
+    <div id="graph-container">
+        <h2>Total Amount and Expense Fee by Year</h2>
+        <canvas id="barChart"></canvas>
+    </div>
+	
     <div id="graph-container">
         <h2>Combined Investment Value and Expense Fees</h2>
         <canvas id="combinedBarChart"></canvas>
@@ -359,66 +359,7 @@
             }
         }
 
-        // Function to update the bar chart
-        function updateBarChart(years) {
-            const labels = Array.from({ length: years }, (_, i) => `Year ${i + 1}`);
-            const datasets = [];
 
-            for (let i = 0; i < investmentCount; i++) {
-                const dataset = {
-                    label: investmentNames[i],
-                    data: investmentsData[i].map(item => item.value),
-                    backgroundColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 0.6)`,
-                    borderColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 1)`,
-                    borderWidth: 1,
-                    type: 'bar'
-                };
-
-                const expenseDataset = {
-                    label: `${investmentNames[i]} Expense Fee`,
-                    data: investmentsData[i].map(item => item.expenseFee),
-                    backgroundColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 0.6)`,
-                    borderColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 1)`,
-                    borderWidth: 1,
-                    type: 'line'
-                };
-
-                datasets.push(dataset);
-                datasets.push(expenseDataset);
-            }
-
-            const ctx = document.getElementById("barChart").getContext("2d");
-            if (window.myChart) {
-                window.myChart.destroy(); // Destroy previous chart to update
-            }
-            window.myChart = new Chart(ctx, {
-                type: "bar",
-                data: {
-                    labels: labels,
-                    datasets: datasets
-                },
-                options: {
-                    scales: {
-                        x: {
-                            stacked: true,
-                        },
-                        y: {
-                            stacked: true,
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top',
-                        },
-                        title: {
-                            display: true,
-                            text: 'Total Amount and Expense Fee by Year',
-                        },
-                    },
-                }
-            });
-        }
 //------------------------------------------------------------------------------------------------------
 function updateResultTable(years) {
     const table = document.getElementById("resultTable");
@@ -465,8 +406,51 @@ function updateResultTable(years) {
     table.appendChild(totalSumRow); // Add the total sum row
 }
 
-
 //------------------------------------------------------------------------------------------------------
+        // Function to update the combined result table
+        function updateCombinedResultTable(years) {
+            const table = document.getElementById("combinedResultTable");
+            table.innerHTML = "";
+
+            // Header row
+            const headerRow = document.createElement("tr");
+            headerRow.innerHTML = "<th>Year</th><th>Total Investment Value</th><th>Total Expense Fee</th>";
+            table.appendChild(headerRow);
+
+            // Data rows
+            for (let i = 0; i < years; i++) {
+                const dataRow = document.createElement("tr");
+                const year = i + 1;
+
+                const totalAmountSum = investmentsData.reduce((acc, data) => {
+                    return acc + parseFloat(data[i].value);
+                }, 0);
+
+                const totalExpenseSum = investmentsData.reduce((acc, data) => {
+                    return acc + parseFloat(data[i].expenseFee);
+                }, 0);
+
+                dataRow.innerHTML = `<td>Year ${year}</td><td>${totalAmountSum.toFixed(2)}</td><td>${totalExpenseSum.toFixed(2)}</td>`;
+                table.appendChild(dataRow);
+            }
+
+            // Calculate and add the total sum row
+            const totalSumRow = document.createElement("tr");
+            totalSumRow.innerHTML = "<td><strong>Total Sum</strong></td>";
+
+            const totalAmountSum = investmentsData.reduce((acc, data) => {
+                return acc + data.reduce((sum, item) => sum + parseFloat(item.value), 0);
+            }, 0);
+
+            const totalExpenseSum = investmentsData.reduce((acc, data) => {
+                return acc + data.reduce((sum, item) => sum + parseFloat(item.expenseFee), 0);
+            }, 0);
+
+            totalSumRow.innerHTML += `<td><strong>${totalAmountSum.toFixed(2)}</strong></td><td><strong>${totalExpenseSum.toFixed(2)}</strong></td>`;
+            table.appendChild(totalSumRow);
+        }
+
+//--------------------------------------CVS AND EXCEL export code is below----------------------------------------------------------------
 		// Function to export table data to CSV
 		function exportTableToCSV(tableId, filename) {
 			const table = document.getElementById(tableId);
@@ -516,118 +500,7 @@ function updateResultTable(years) {
 			// Save the workbook as an Excel file
 			XLSX.writeFile(wb, filename);
 		}
-//------------------------------------------------------------------------------------------------------
-        // Function to update the combined result table
-        function updateCombinedResultTable(years) {
-            const table = document.getElementById("combinedResultTable");
-            table.innerHTML = "";
 
-            // Header row
-            const headerRow = document.createElement("tr");
-            headerRow.innerHTML = "<th>Year</th><th>Total Investment Value</th><th>Total Expense Fee</th>";
-            table.appendChild(headerRow);
-
-            // Data rows
-            for (let i = 0; i < years; i++) {
-                const dataRow = document.createElement("tr");
-                const year = i + 1;
-
-                const totalAmountSum = investmentsData.reduce((acc, data) => {
-                    return acc + parseFloat(data[i].value);
-                }, 0);
-
-                const totalExpenseSum = investmentsData.reduce((acc, data) => {
-                    return acc + parseFloat(data[i].expenseFee);
-                }, 0);
-
-                dataRow.innerHTML = `<td>Year ${year}</td><td>${totalAmountSum.toFixed(2)}</td><td>${totalExpenseSum.toFixed(2)}</td>`;
-                table.appendChild(dataRow);
-            }
-
-            // Calculate and add the total sum row
-            const totalSumRow = document.createElement("tr");
-            totalSumRow.innerHTML = "<td><strong>Total Sum</strong></td>";
-
-            const totalAmountSum = investmentsData.reduce((acc, data) => {
-                return acc + data.reduce((sum, item) => sum + parseFloat(item.value), 0);
-            }, 0);
-
-            const totalExpenseSum = investmentsData.reduce((acc, data) => {
-                return acc + data.reduce((sum, item) => sum + parseFloat(item.expenseFee), 0);
-            }, 0);
-
-            totalSumRow.innerHTML += `<td><strong>${totalAmountSum.toFixed(2)}</strong></td><td><strong>${totalExpenseSum.toFixed(2)}</strong></td>`;
-            table.appendChild(totalSumRow);
-        }
-
-        // Function to update the combined bar chart for the combined investment data
-        function updateCombinedBarChart(years) {
-            const labels = Array.from({ length: years }, (_, i) => `Year ${i + 1}`);
-            const datasets = [];
-            const totalAmountSums = [];
-            const totalExpenseSums = [];
-
-            for (let i = 0; i < years; i++) {
-                const totalAmountSum = investmentsData.reduce((acc, data) => {
-                    return acc + parseFloat(data[i].value);
-                }, 0);
-
-                const totalExpenseSum = investmentsData.reduce((acc, data) => {
-                    return acc + parseFloat(data[i].expenseFee);
-                }, 0);
-
-                totalAmountSums.push(totalAmountSum);
-                totalExpenseSums.push(totalExpenseSum);
-            }
-
-            datasets.push({
-                label: 'Total Investment Value',
-                data: totalAmountSums,
-                backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 1,
-            });
-
-            datasets.push({
-                label: 'Total Expense Fee',
-                data: totalExpenseSums,
-                backgroundColor: 'rgba(255, 99, 132, 0.6)',
-                borderColor: 'rgba(255, 99, 132, 1)',
-                borderWidth: 1,
-            });
-
-            const ctx = document.getElementById('combinedBarChart').getContext('2d');
-            if (window.myCombinedChart) {
-                window.myCombinedChart.destroy(); // Destroy previous chart to update
-            }
-            window.myCombinedChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: datasets,
-                },
-                options: {
-                    scales: {
-                        x: {
-                            stacked: true,
-                        },
-                        y: {
-                            stacked: true,
-                        },
-                    },
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top',
-                        },
-                        title: {
-                            display: true,
-                            text: 'Total Investment Value and Expense Fee by Year (Combined)',
-                        },
-                    },
-                },
-            });
-        }
 
 
 //---------------------------------------------------------------------
@@ -755,7 +628,136 @@ function calculateTotalEmployerContribution(investmentIndex) {
     return calculateContribution(amount, frequency, years) * years; // Multiply by years
 }
 
+//------------------------------------All the Chart code is below ------------------------------------
+        // Function to update the bar chart
+        function updateBarChart(years) {
+            const labels = Array.from({ length: years }, (_, i) => `Year ${i + 1}`);
+            const datasets = [];
 
+            for (let i = 0; i < investmentCount; i++) {
+                const dataset = {
+                    label: investmentNames[i],
+                    data: investmentsData[i].map(item => item.value),
+                    backgroundColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 0.6)`,
+                    borderColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 1)`,
+                    borderWidth: 1,
+                    type: 'bar'
+                };
+
+                const expenseDataset = {
+                    label: `${investmentNames[i]} Expense Fee`,
+                    data: investmentsData[i].map(item => item.expenseFee),
+                    backgroundColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 0.6)`,
+                    borderColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 1)`,
+                    borderWidth: 1,
+                    type: 'line'
+                };
+
+                datasets.push(dataset);
+                datasets.push(expenseDataset);
+            }
+
+            const ctx = document.getElementById("barChart").getContext("2d");
+            if (window.myChart) {
+                window.myChart.destroy(); // Destroy previous chart to update
+            }
+            window.myChart = new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: labels,
+                    datasets: datasets
+                },
+                options: {
+                    scales: {
+                        x: {
+                            stacked: true,
+                        },
+                        y: {
+                            stacked: true,
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Total Amount and Expense Fee by Year',
+                        },
+                    },
+                }
+            });
+        }
+//------------------------------------9/24/2023------------------------------------
+        // Function to update the combined bar chart for the combined investment data
+        function updateCombinedBarChart(years) {
+            const labels = Array.from({ length: years }, (_, i) => `Year ${i + 1}`);
+            const datasets = [];
+            const totalAmountSums = [];
+            const totalExpenseSums = [];
+
+            for (let i = 0; i < years; i++) {
+                const totalAmountSum = investmentsData.reduce((acc, data) => {
+                    return acc + parseFloat(data[i].value);
+                }, 0);
+
+                const totalExpenseSum = investmentsData.reduce((acc, data) => {
+                    return acc + parseFloat(data[i].expenseFee);
+                }, 0);
+
+                totalAmountSums.push(totalAmountSum);
+                totalExpenseSums.push(totalExpenseSum);
+            }
+
+            datasets.push({
+                label: 'Total Investment Value',
+                data: totalAmountSums,
+                backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1,
+            });
+
+            datasets.push({
+                label: 'Total Expense Fee',
+                data: totalExpenseSums,
+                backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1,
+            });
+
+            const ctx = document.getElementById('combinedBarChart').getContext('2d');
+            if (window.myCombinedChart) {
+                window.myCombinedChart.destroy(); // Destroy previous chart to update
+            }
+            window.myCombinedChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: datasets,
+                },
+                options: {
+                    scales: {
+                        x: {
+                            stacked: true,
+                        },
+                        y: {
+                            stacked: true,
+                        },
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Total Investment Value and Expense Fee by Year (Combined)',
+                        },
+                    },
+                },
+            });
+        }
 //------------------------------------9/24/2023------------------------------------
 // Function to update the Contributions and Gains chart
 function updateContributionsGainsChart() {
@@ -851,53 +853,6 @@ function updateContributionsGainsChart() {
         },
     });
 }
-
-
-
-
-
-//------------------------------------9/24/2023------------------------------------
-	// Function to update the investment details table
-/*	function updateInvestmentDetailsTable() {
-		const table = document.getElementById("investmentDetailsTable").querySelector("tbody");
-		table.innerHTML = ""; // Clear existing rows
-
-		for (let i = 0; i < investmentCount; i++) {
-			const investmentName = investmentNames[i];
-			const totalEmployeeContribution = calculateTotalEmployeeContribution(i);
-			const totalEmployerContribution = calculateTotalEmployerContribution(i);
-			const investmentValue = parseFloat(investmentsData[i][years - 1].value);
-
-			const newRow = document.createElement("tr");
-			newRow.innerHTML = `
-				<td>${investmentName}</td>
-				<td>${totalEmployeeContribution.toFixed(2)}</td>
-				<td>${totalEmployerContribution.toFixed(2)}</td>
-				<td>${investmentValue.toFixed(2)}</td>
-			`;
-
-			table.appendChild(newRow); // Add a row for each investment
-		}
-	}*/
-/*
-// Function to calculate the total employee contribution for a specific investment
-function calculateTotalEmployeeContribution(investmentIndex) {
-    const frequency = employeeContributions[investmentIndex].frequency;
-    const amount = employeeContributions[investmentIndex].amount;
-    return calculateContribution(amount, frequency, years) * years; // Multiply by years
-}
-
-// Function to calculate the total employer contribution for a specific investment
-function calculateTotalEmployerContribution(investmentIndex) {
-    const frequency = employerContributions[investmentIndex].frequency;
-    const amount = employerContributions[investmentIndex].amount;
-    return calculateContribution(amount, frequency, years) * years; // Multiply by years
-}
-*/
-
-
-
-
 
 //------------------------------------------------------------------------
 
