@@ -181,15 +181,6 @@
         <canvas id="combinedBarChart"></canvas>
     </div>
 
-<button onclick="downloadChartImage()">Download Graph as Image</button>
-
-	<div id="contributionsGainsContainer">
-		<h2>Investment Contributions and Gains</h2>
-		<canvas id="contributionsGainsChart"></canvas>
-	</div>
-
-<button onclick="downloadChartImage()">Download Graph as Image</button>
-	
     <script>
         let investmentCount = 0;
         let years = 0;
@@ -333,10 +324,7 @@
 			
 			// Update the investment summary table
 			updateInvestmentSummaryTable();
-			
-			// Call the function to update the investment details table
-			updateInvestmentDetailsTable();
-			
+					
 			// Call the function to update the Contributions and Gains chart
 			updateContributionsGainsChart();
 		}
@@ -631,7 +619,7 @@ function calculateTotalEmployerContribution(investmentIndex) {
     return calculateContribution(amount, frequency, years) * years; // Multiply by years
 }
 
-//------------------------------------All the Chart code is below ------------------------------------
+//--------------------------------------------------All the Chart code is below ----------------------------------------------------------------
         // Function to update the bar chart
         function updateBarChart(years) {
             const labels = Array.from({ length: years }, (_, i) => `Year ${i + 1}`);
@@ -694,7 +682,7 @@ function calculateTotalEmployerContribution(investmentIndex) {
         }
 //------------------------------------9/24/2023------------------------------------
         // Function to update the combined bar chart for the combined investment data
-        function updateCombinedBarChart(years) {
+       function updateCombinedBarChart(years) {
             const labels = Array.from({ length: years }, (_, i) => `Year ${i + 1}`);
             const datasets = [];
             const totalAmountSums = [];
@@ -761,102 +749,6 @@ function calculateTotalEmployerContribution(investmentIndex) {
                 },
             });
         }
-//------------------------------------9/24/2023------------------------------------
-// Function to update the Contributions and Gains chart
-function updateContributionsGainsChart() {
-    const chartCanvas = document.getElementById("contributionsGainsChart").getContext("2d");
-
-    // Destroy the previous chart if it exists
-    if (contributionsGainsChart) {
-        contributionsGainsChart.destroy();
-    }
-	
-    // Prepare data for the chart
-    const labels = Array.from({ length: years }, (_, i) => `Year ${i + 1}`);
-    const datasets = [];
-    
-    // Add initial contribution dataset
-    const initialContributionData = investmentsData.map((investment) =>
-        investment.map((item) => parseFloat(item.initialContribution))
-    );
-    datasets.push({
-        label: "Initial Contribution",
-        data: initialContributionData,
-        borderColor: "rgba(255, 99, 132, 1)",
-        backgroundColor: "rgba(255, 99, 132, 0.2)",
-        borderWidth: 1,
-        fill: false,
-    });
-
-    // Add employee contribution dataset
-    const employeeContributionData = investmentsData.map((investment) =>
-        investment.map((item) => parseFloat(item.employeeContribution))
-    );
-    datasets.push({
-        label: "Employee Contribution",
-        data: employeeContributionData,
-        borderColor: "rgba(54, 162, 235, 1)",
-        backgroundColor: "rgba(54, 162, 235, 0.2)",
-        borderWidth: 1,
-        fill: false,
-    });
-
-    // Add employer contribution dataset
-    const employerContributionData = investmentsData.map((investment) =>
-        investment.map((item) => parseFloat(item.employerContribution))
-    );
-    datasets.push({
-        label: "Employer Contribution",
-        data: employerContributionData,
-        borderColor: "rgba(75, 192, 192, 1)",
-        backgroundColor: "rgba(75, 192, 192, 0.2)",
-        borderWidth: 1,
-        fill: false,
-    });
-
-    // Add gains dataset
-    const gainsData = investmentsData.map((investment) =>
-        investment.map((item) => parseFloat(item.gains))
-    );
-    datasets.push({
-        label: "Gains",
-        data: gainsData,
-        borderColor: "rgba(255, 206, 86, 1)",
-        backgroundColor: "rgba(255, 206, 86, 0.2)",
-        borderWidth: 1,
-        fill: false,
-    });
-
-    // Create the chart
-    contributionsGainsChart = new Chart(chartCanvas, {
-        type: "line",
-        data: {
-            labels: labels,
-            datasets: datasets,
-        },
-        options: {
-            scales: {
-                x: {
-                    stacked: true,
-                },
-                y: {
-                    stacked: true,
-                },
-            },
-            plugins: {
-                legend: {
-                    display: true,
-                    position: "top",
-                },
-                title: {
-                    display: true,
-                    text: "Investment Contributions and Gains",
-                },
-            },
-        },
-    });
-}
-
 //------------------------------------------------------------------------
 
 		// Function to add event listeners to input fields
