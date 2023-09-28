@@ -476,51 +476,39 @@
 			return calculateContribution(amount, frequency, years) * years; // Multiply by years
 		}
 //------------------------------------------------------------------------------------------------------
-        // Function to update the Total Amounts and Expense Fees by Year table
-		function updateResultTable(years) {
-			const table = document.getElementById("resultTable");
-			const headerRow = document.createElement("tr");
-			const totalSumRow = document.createElement("tr");
+// Function to update the Total Amounts and Expense Fees by Year table
+function updateResultTable(years) {
+    const table = document.getElementById("resultTable");
+    const headerRow = document.createElement("tr");
 
-			// Header row
-			headerRow.innerHTML = "<th>Year</th>";
-			totalSumRow.innerHTML = "<td><strong>Total Sum</strong></td>";
+    // Header row
+    headerRow.innerHTML = "<th>Year</th>";
 
-			// Loop through investments to create header cells and total cells
-			for (let i = 0; i < investmentCount; i++) {
-				headerRow.innerHTML += `<th>${investmentNames[i]} Value</th><th>${investmentNames[i]} Expense Fee</th>`;
-				totalSumRow.innerHTML += `<td></td><td></td>`;
-			}
+    // Loop through investments to create header cells
+    for (let i = 0; i < investmentCount; i++) {
+        headerRow.innerHTML += `<th>${investmentNames[i]} End Value</th><th>${investmentNames[i]} Expense Fee</th>`;
+    }
 
-			table.innerHTML = ""; // Clear the existing table content
-			table.appendChild(headerRow); // Add the header row
+    table.innerHTML = ""; // Clear the existing table content
+    table.appendChild(headerRow); // Add the header row
 
-			// Calculate and add data rows for each year
-			for (let i = 0; i < years; i++) {
-				const dataRow = document.createElement("tr");
-				const year = i + 1;
-				dataRow.innerHTML = `<td>Year ${year}</td>`;
+    // Calculate and add data rows for each year
+    for (let i = 0; i < years; i++) {
+        const dataRow = document.createElement("tr");
+        const year = i + 1;
+        dataRow.innerHTML = `<td>Year ${year}</td>`;
 
-				// Loop through each investment and calculate values
-				for (let j = 0; j < investmentCount; j++) {
-					const value = investmentsData[j][i].value;
-					const expenseFee = investmentsData[j][i].expenseFee;
-					dataRow.innerHTML += `<td>${value}</td><td>${expenseFee}</td>`;
-				}
+        // Loop through each investment and calculate values
+        for (let j = 0; j < investmentCount; j++) {
+            const value = parseFloat(investmentsData[j][i].value);
+            const expenseFee = parseFloat(investmentsData[j][i].expenseFee);
+            dataRow.innerHTML += `<td>${value.toFixed(2)}</td><td>${expenseFee.toFixed(2)}</td>`;
+        }
 
-				table.appendChild(dataRow); // Add the data row
-			}
+        table.appendChild(dataRow); // Add the data row
+    }
+}
 
-			// Calculate and add the total sum row for each investment
-			for (let i = 0; i < investmentCount; i++) {
-				const totalAmountSum = investmentsData[i].reduce((acc, item) => acc + parseFloat(item.value), 0);
-				const totalExpenseSum = investmentsData[i].reduce((acc, item) => acc + parseFloat(item.expenseFee), 0);
-				totalSumRow.cells[i * 2 + 1].textContent = totalAmountSum.toFixed(2);
-				totalSumRow.cells[i * 2 + 2].textContent = totalExpenseSum.toFixed(2);
-			}
-
-			table.appendChild(totalSumRow); // Add the total sum row
-		}
 
 //------------------------------------------------------------------------------------------------------
         // Function to update the combined result table
