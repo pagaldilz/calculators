@@ -573,7 +573,7 @@ function updateCombinedResultTable(years) {
 
     // Header row
     const headerRow = document.createElement("tr");
-    headerRow.innerHTML = "<th>Year</th><th>Total Investment Value</th><th>Total Expense Fee</th><th>Yearly Gains</th><th>Employee Contribution</th><th>Employer Contribution</th>";
+    headerRow.innerHTML = "<th>Year</th><th>Employee Contribution</th><th>Employer Contribution</th><th>Total Investment Value</th><th>Yearly Gains</th><th>Total Expense Fee</th>";
     table.appendChild(headerRow);
 
     // Data rows
@@ -598,7 +598,7 @@ function updateCombinedResultTable(years) {
             return acc + parseFloat(data[i].employerContribution);
         }, 0);
 
-        dataRow.innerHTML = `<td>Year ${year}</td><td>${totalAmountSum.toFixed(2)}</td><td>${totalExpenseSum.toFixed(2)}</td><td>${yearlyGains.toFixed(2)}</td><td>${employeeContributionForYear.toFixed(2)}</td><td>${employerContributionForYear.toFixed(2)}</td>`;
+        dataRow.innerHTML = `<td>Year ${year}</td><td>${employeeContributionForYear.toFixed(2)}</td><td>${employerContributionForYear.toFixed(2)}</td><td>${totalAmountSum.toFixed(2)}</td><td>${yearlyGains.toFixed(2)}</td><td>${totalExpenseSum.toFixed(2)}</td>`;
         table.appendChild(dataRow);
     }
 
@@ -623,9 +623,10 @@ function updateCombinedResultTable(years) {
         return acc + data.reduce((sum, item) => sum + parseFloat(item.employerContribution), 0);
     }, 0);
 
-    totalSumRow.innerHTML += `<td><strong>${totalAmountSum.toFixed(2)}</strong></td><td><strong>${totalExpenseSum.toFixed(2)}</strong></td><td><strong>${totalYearlyGains.toFixed(2)}</strong></td><td><strong>${totalEmployeeContributions.toFixed(2)}</strong></td><td><strong>${totalEmployerContributions.toFixed(2)}</strong></td>`;
+    totalSumRow.innerHTML += `<td><strong>${totalEmployeeContributions.toFixed(2)}</strong></td><td><strong>${totalEmployerContributions.toFixed(2)}</strong></td><td><strong>${totalAmountSum.toFixed(2)}</strong></td><td><strong>${totalYearlyGains.toFixed(2)}</strong></td><td><strong>${totalExpenseSum.toFixed(2)}</strong></td>`;
     table.appendChild(totalSumRow);
 }
+
 
 //--------------------------------------------------All the Chart code is below ----------------------------------------------------------------
         // Function to update the bar chart
