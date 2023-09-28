@@ -137,12 +137,13 @@
 			<thead>
 				<tr>
 					<th>Investment Name</th>
+					<th>Initial Balance</th>
 					<th>Total Employee Contribution</th>
 					<th>Total Employer Contribution</th>
-					<th>Total Fee(s) Paid</th>
 					<th>Total Investment Value</th>
-					<th>Expense Ratio (%)</th> <!-- Add the "Expense Ratio (%)" column -->
-					<th>Investment Gains</th> <!-- Add the "Expense Ratio (%)" column -->
+					<th>Investment Gains</th> 
+					<th>Total Fee(s) Paid</th>
+					<th>Expense Ratio (%)</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -325,8 +326,6 @@
 			// Update the investment summary table
 			updateInvestmentSummaryTable();
 					
-			// Call the function to update the Contributions and Gains chart
-			updateContributionsGainsChart();
 		}
 
         // Function to calculate contributions based on frequency
@@ -396,7 +395,7 @@ function updateResultTable(years) {
 
 //------------------------------------------------------------------------------------------------------
         // Function to update the combined result table
-        function updateCombinedResultTable(years) {
+/*        function updateCombinedResultTable(years) {
             const table = document.getElementById("combinedResultTable");
             table.innerHTML = "";
 
@@ -437,58 +436,67 @@ function updateResultTable(years) {
             totalSumRow.innerHTML += `<td><strong>${totalAmountSum.toFixed(2)}</strong></td><td><strong>${totalExpenseSum.toFixed(2)}</strong></td>`;
             table.appendChild(totalSumRow);
         }
+*/
+// Function to update the combined result table
+function updateCombinedResultTable(years) {
+    const table = document.getElementById("combinedResultTable");
+    table.innerHTML = "";
 
-//--------------------------------------CVS AND EXCEL export code is below----------------------------------------------------------------
-		// Function to export table data to CSV
-		function exportTableToCSV(tableId, filename) {
-			const table = document.getElementById(tableId);
-			const rows = table.querySelectorAll('tr');
-			let csvContent = "data:text/csv;charset=utf-8,";
+    // Header row
+    const headerRow = document.createElement("tr");
+    headerRow.innerHTML = "<th>Year</th><th>Total Investment Value</th><th>Total Expense Fee</th><th>Yearly Gains</th><th>Employee Contribution</th><th>Employer Contribution</th>";
+    table.appendChild(headerRow);
 
-			// Loop through each row and convert it to CSV format
-			rows.forEach(function (row, index) {
-				const rowData = [];
-				const cols = row.querySelectorAll('td, th');
-				cols.forEach(function (col) {
-					rowData.push(col.textContent);
-				});
-				csvContent += rowData.join(',') + "\n";
-			});
+    // Data rows
+    for (let i = 0; i < years; i++) {
+        const dataRow = document.createElement("tr");
+        const year = i + 1;
 
-			// Create a data URI and set it as the href of a download link
-			const encodedUri = encodeURI(csvContent);
-			const link = document.createElement("a");
-			link.setAttribute("href", encodedUri);
-			link.setAttribute("download", filename);
-			document.body.appendChild(link);
+        const totalAmountSum = investmentsData.reduce((acc, data) => {
+            return acc + parseFloat(data[i].value);
+        }, 0);
 
-			// Trigger the link to initiate the download
-			link.click();
-			document.body.removeChild(link);
-		}
-//----------------------------------------------------------------------------------------
-		// Function to export a table to Excel with timestamp
-		function exportTableToExcel(tableId, filenamePrefix) {
-			// Get the current timestamp
-			const timestamp = new Date().toISOString().replace(/:/g, "-");
+        const totalExpenseSum = investmentsData.reduce((acc, data) => {
+            return acc + parseFloat(data[i].expenseFee);
+        }, 0);
 
-			// Construct the filename with the timestamp
-			const filename = `${filenamePrefix}_${timestamp}.xlsx`;
+        // Calculate yearly gains, employee contribution for the year, and employer contribution for the year
+        const yearlyGains = totalAmountSum - totalExpenseSum;
+        const employeeContributionForYear = investmentsData.reduce((acc, data) => {
+            return acc + parseFloat(data[i].employeeContribution);
+        }, 0);
+        const employerContributionForYear = investmentsData.reduce((acc, data) => {
+            return acc + parseFloat(data[i].employerContribution);
+        }, 0);
 
-			// Get the table element by its ID
-			const table = document.getElementById(tableId);
+        dataRow.innerHTML = `<td>Year ${year}</td><td>${totalAmountSum.toFixed(2)}</td><td>${totalExpenseSum.toFixed(2)}</td><td>${yearlyGains.toFixed(2)}</td><td>${employeeContributionForYear.toFixed(2)}</td><td>${employerContributionForYear.toFixed(2)}</td>`;
+        table.appendChild(dataRow);
+    }
 
-			// Convert the table to a worksheet
-			const ws = XLSX.utils.table_to_sheet(table);
+    // Calculate and add the total sum row
+    const totalSumRow = document.createElement("tr");
+    totalSumRow.innerHTML = "<td><strong>Total Sum</strong></td>";
 
-			// Create a new workbook
-			const wb = XLSX.utils.book_new();
-			XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+    const totalAmountSum = investmentsData.reduce((acc, data) => {
+        return acc + data.reduce((sum, item) => sum + parseFloat(item.value), 0);
+    }, 0);
 
-			// Save the workbook as an Excel file
-			XLSX.writeFile(wb, filename);
-		}
+    const totalExpenseSum = investmentsData.reduce((acc, data) => {
+        return acc + data.reduce((sum, item) => sum + parseFloat(item.expenseFee), 0);
+    }, 0);
 
+    // Calculate total yearly gains, employee contributions, and employer contributions
+    const totalYearlyGains = totalAmountSum - totalExpenseSum;
+    const totalEmployeeContributions = investmentsData.reduce((acc, data) => {
+        return acc + data.reduce((sum, item) => sum + parseFloat(item.employeeContribution), 0);
+    }, 0);
+    const totalEmployerContributions = investmentsData.reduce((acc, data) => {
+        return acc + data.reduce((sum, item) => sum + parseFloat(item.employerContribution), 0);
+    }, 0);
+
+    totalSumRow.innerHTML += `<td><strong>${totalAmountSum.toFixed(2)}</strong></td><td><strong>${totalExpenseSum.toFixed(2)}</strong></td><td><strong>${totalYearlyGains.toFixed(2)}</strong></td><td><strong>${totalEmployeeContributions.toFixed(2)}</strong></td><td><strong>${totalEmployerContributions.toFixed(2)}</strong></td>`;
+    table.appendChild(totalSumRow);
+}
 
 
 //---------------------------------------------------------------------
@@ -564,8 +572,9 @@ function updateInvestmentSummaryTable() {
 
     for (let i = 0; i < investmentCount; i++) {
         const investmentName = investmentNames[i];
+        const initialBalance = parseFloat(initialBalances[i]);
         const totalExpenseFee = investmentsData[i].reduce((sum, item) => sum + parseFloat(item.expenseFee), 0);
-        
+
         // Calculate total employee contribution for this investment
         const totalEmployeeContribution = calculateTotalEmployeeContribution(i);
 
@@ -585,25 +594,27 @@ function updateInvestmentSummaryTable() {
         const expenseRatioPercentage = isNaN(expenseRatio) ? 'N/A' : (expenseRatio * 100).toFixed(2) + '%';
 
         // Create and append the updated row
-        addInvestmentSummaryRow(investmentName, totalEmployeeContribution, totalEmployerContribution, totalExpenseFee, endValue, expenseRatioPercentage, investmentGains);
+        addInvestmentSummaryRow(investmentName, initialBalance, totalEmployeeContribution, totalEmployerContribution, endValue, investmentGains, totalExpenseFee, expenseRatioPercentage);
     }
 }
 
 // Function to add a row to the Investment Summary table
-function addInvestmentSummaryRow(investmentName, totalEmployeeContribution, totalEmployerContribution, totalExpenseFee, endValue, expenseRatioPercentage, investmentGains) {
+function addInvestmentSummaryRow(investmentName, initialBalance, totalEmployeeContribution, totalEmployerContribution, endValue, investmentGains, totalExpenseFee, expenseRatioPercentage) {
     const summaryTable = document.getElementById("investmentSummaryTable").querySelector("tbody");
     const newRow = document.createElement("tr");
     newRow.innerHTML = `
         <td>${investmentName}</td>
+        <td>${initialBalance.toFixed(2)}</td> <!-- Initial Balance -->
         <td>${totalEmployeeContribution.toFixed(2)}</td>
         <td>${totalEmployerContribution.toFixed(2)}</td>
-        <td>${totalExpenseFee.toFixed(2)}</td>
         <td>${endValue.toFixed(2)}</td>
+        <td>${investmentGains.toFixed(2)}</td>
+        <td>${totalExpenseFee.toFixed(2)}</td>
         <td>${expenseRatioPercentage}</td>
-        <td>${investmentGains.toFixed(2)}</td> <!-- Investment Gains Column -->
     `;
     summaryTable.appendChild(newRow);
 }
+
 
 // Function to calculate the total employee contribution for a specific investment
 function calculateTotalEmployeeContribution(investmentIndex) {
@@ -749,6 +760,57 @@ function calculateTotalEmployerContribution(investmentIndex) {
                 },
             });
         }
+//--------------------------------------CVS AND EXCEL export code is below----------------------------------------------------------------
+		// Function to export table data to CSV
+		function exportTableToCSV(tableId, filename) {
+			const table = document.getElementById(tableId);
+			const rows = table.querySelectorAll('tr');
+			let csvContent = "data:text/csv;charset=utf-8,";
+
+			// Loop through each row and convert it to CSV format
+			rows.forEach(function (row, index) {
+				const rowData = [];
+				const cols = row.querySelectorAll('td, th');
+				cols.forEach(function (col) {
+					rowData.push(col.textContent);
+				});
+				csvContent += rowData.join(',') + "\n";
+			});
+
+			// Create a data URI and set it as the href of a download link
+			const encodedUri = encodeURI(csvContent);
+			const link = document.createElement("a");
+			link.setAttribute("href", encodedUri);
+			link.setAttribute("download", filename);
+			document.body.appendChild(link);
+
+			// Trigger the link to initiate the download
+			link.click();
+			document.body.removeChild(link);
+		}
+//----------------------------------------------------------------------------------------
+		// Function to export a table to Excel with timestamp
+		function exportTableToExcel(tableId, filenamePrefix) {
+			// Get the current timestamp
+			const timestamp = new Date().toISOString().replace(/:/g, "-");
+
+			// Construct the filename with the timestamp
+			const filename = `${filenamePrefix}_${timestamp}.xlsx`;
+
+			// Get the table element by its ID
+			const table = document.getElementById(tableId);
+
+			// Convert the table to a worksheet
+			const ws = XLSX.utils.table_to_sheet(table);
+
+			// Create a new workbook
+			const wb = XLSX.utils.book_new();
+			XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+
+			// Save the workbook as an Excel file
+			XLSX.writeFile(wb, filename);
+		}
+
 //------------------------------------------------------------------------
 
 		// Function to add event listeners to input fields
