@@ -346,7 +346,122 @@
             }
         }
 
+//----------------------------------------All the tables code is below--------------------------------------------------------------
+		// Function to update Investment summary table
+		function updateInvestmentTable() {
+			const investmentTable = document.getElementById("investmentTable").querySelector("tbody");
+			investmentTable.innerHTML = ""; // Clear the existing table rows
 
+			// Loop through all investments and add them to the table
+			for (let i = 1; i <= investmentCount; i++) {
+				const idPrefix = `investment_${i}_`;
+				
+				const investmentName = document.getElementById(`${idPrefix}name`).value;
+				const initialBalance = parseFloat(document.getElementById(`${idPrefix}initialBalance`).value);
+				const employeeContribution = parseFloat(document.getElementById(`${idPrefix}employeeContribution`).value);
+				const employerContribution = parseFloat(document.getElementById(`${idPrefix}employerContribution`).value);
+				const expenseRatio = parseFloat(document.getElementById(`${idPrefix}expenseRatio`).value) / 100;
+				const employeeFrequency = document.getElementById(`${idPrefix}employeeFrequency`).value;
+				const employerFrequency = document.getElementById(`${idPrefix}employerFrequency`).value;
+
+				// Add the investment data to the table
+				const newRow = investmentTable.insertRow();
+				newRow.innerHTML = `
+					<td>${investmentName}</td>
+					<td>${initialBalance}</td>
+					<td>${employeeContribution}</td>
+					<td>${employerContribution}</td>
+					<td>${expenseRatio}</td>
+					<td>${employeeFrequency}</td>
+					<td>${employerFrequency}</td>
+				`;
+				
+				// Then, call the function to update the Investment Summary table
+				updateInvestmentSummaryTable();
+			}
+		}
+
+		// Add a unique class to each row in the Investment Summary table
+		function addInvestmentSummaryRow(investmentName, totalExpenseFee, endValue, expenseRatioPercentage) {
+			const summaryTable = document.getElementById("investmentSummaryTable").querySelector("tbody");
+
+			const newRow = document.createElement("tr");
+			newRow.classList.add(`summary-row-${investmentName}`); // Add a unique class for this row
+
+			newRow.innerHTML = `
+				<td>${investmentName}</td>
+				<td>${totalExpenseFee.toFixed(2)}</td>
+				<td>${endValue.toFixed(2)}</td>
+				<td>${expenseRatioPercentage}</td>
+			`;
+
+			summaryTable.appendChild(newRow);
+		}
+//------------------------------------------------------------------------------------------------------		
+// Function to update the Investment Summary table
+function updateInvestmentSummaryTable() {
+    const summaryTable = document.getElementById("investmentSummaryTable").querySelector("tbody");
+    summaryTable.innerHTML = ""; // Clear existing rows
+
+    for (let i = 0; i < investmentCount; i++) {
+        const investmentName = investmentNames[i];
+        const initialBalance = parseFloat(initialBalances[i]);
+        const totalExpenseFee = investmentsData[i].reduce((sum, item) => sum + parseFloat(item.expenseFee), 0);
+
+        // Calculate total employee contribution for this investment
+        const totalEmployeeContribution = calculateTotalEmployeeContribution(i);
+
+        // Calculate total employer contribution for this investment
+        const totalEmployerContribution = calculateTotalEmployerContribution(i);
+
+        // Get the end value of the investment (value at the end of the specified number of years)
+        const endValue = parseFloat(investmentsData[i][years - 1].value);
+
+        // Calculate investment gains
+        const investmentGains = endValue - (totalEmployeeContribution + totalEmployerContribution + totalExpenseFee);
+
+        // Retrieve the expense ratio for this investment
+        const expenseRatio = parseFloat(expenseRatios[i]);
+
+        // Check if the expense ratio is a valid number
+        const expenseRatioPercentage = isNaN(expenseRatio) ? 'N/A' : (expenseRatio * 100).toFixed(2) + '%';
+
+        // Create and append the updated row
+        addInvestmentSummaryRow(investmentName, initialBalance, totalEmployeeContribution, totalEmployerContribution, endValue, investmentGains, totalExpenseFee, expenseRatioPercentage);
+    }
+}
+
+// Function to add a row to the Investment Summary table
+function addInvestmentSummaryRow(investmentName, initialBalance, totalEmployeeContribution, totalEmployerContribution, endValue, investmentGains, totalExpenseFee, expenseRatioPercentage) {
+    const summaryTable = document.getElementById("investmentSummaryTable").querySelector("tbody");
+    const newRow = document.createElement("tr");
+    newRow.innerHTML = `
+        <td>${investmentName}</td>
+        <td>${initialBalance.toFixed(2)}</td> <!-- Initial Balance -->
+        <td>${totalEmployeeContribution.toFixed(2)}</td>
+        <td>${totalEmployerContribution.toFixed(2)}</td>
+        <td>${endValue.toFixed(2)}</td>
+        <td>${investmentGains.toFixed(2)}</td>
+        <td>${totalExpenseFee.toFixed(2)}</td>
+        <td>${expenseRatioPercentage}</td>
+    `;
+    summaryTable.appendChild(newRow);
+}
+
+
+// Function to calculate the total employee contribution for a specific investment
+function calculateTotalEmployeeContribution(investmentIndex) {
+    const frequency = employeeContributions[investmentIndex].frequency;
+    const amount = employeeContributions[investmentIndex].amount;
+    return calculateContribution(amount, frequency, years) * years; // Multiply by years
+}
+
+// Function to calculate the total employer contribution for a specific investment
+function calculateTotalEmployerContribution(investmentIndex) {
+    const frequency = employerContributions[investmentIndex].frequency;
+    const amount = employerContributions[investmentIndex].amount;
+    return calculateContribution(amount, frequency, years) * years; // Multiply by years
+}
 //------------------------------------------------------------------------------------------------------
 function updateResultTable(years) {
     const table = document.getElementById("resultTable");
@@ -496,138 +611,6 @@ function updateCombinedResultTable(years) {
 
     totalSumRow.innerHTML += `<td><strong>${totalAmountSum.toFixed(2)}</strong></td><td><strong>${totalExpenseSum.toFixed(2)}</strong></td><td><strong>${totalYearlyGains.toFixed(2)}</strong></td><td><strong>${totalEmployeeContributions.toFixed(2)}</strong></td><td><strong>${totalEmployerContributions.toFixed(2)}</strong></td>`;
     table.appendChild(totalSumRow);
-}
-
-
-//---------------------------------------------------------------------
-// Function to download the chart as an image
-function downloadChartImage() {
-    const chartCanvas = document.getElementById("combinedBarChart");
-    const chartImage = chartCanvas.toDataURL("image/png");
-    
-    // Create a download link for the chart image
-    const downloadLink = document.createElement("a");
-    downloadLink.href = chartImage;
-    downloadLink.download = "combined_investment_chart.png";
-    
-    // Trigger a click event to start the download
-    downloadLink.click();
-}
-
-		// Function to update Investment summary table
-		function updateInvestmentTable() {
-			const investmentTable = document.getElementById("investmentTable").querySelector("tbody");
-			investmentTable.innerHTML = ""; // Clear the existing table rows
-
-			// Loop through all investments and add them to the table
-			for (let i = 1; i <= investmentCount; i++) {
-				const idPrefix = `investment_${i}_`;
-				
-				const investmentName = document.getElementById(`${idPrefix}name`).value;
-				const initialBalance = parseFloat(document.getElementById(`${idPrefix}initialBalance`).value);
-				const employeeContribution = parseFloat(document.getElementById(`${idPrefix}employeeContribution`).value);
-				const employerContribution = parseFloat(document.getElementById(`${idPrefix}employerContribution`).value);
-				const expenseRatio = parseFloat(document.getElementById(`${idPrefix}expenseRatio`).value) / 100;
-				const employeeFrequency = document.getElementById(`${idPrefix}employeeFrequency`).value;
-				const employerFrequency = document.getElementById(`${idPrefix}employerFrequency`).value;
-
-				// Add the investment data to the table
-				const newRow = investmentTable.insertRow();
-				newRow.innerHTML = `
-					<td>${investmentName}</td>
-					<td>${initialBalance}</td>
-					<td>${employeeContribution}</td>
-					<td>${employerContribution}</td>
-					<td>${expenseRatio}</td>
-					<td>${employeeFrequency}</td>
-					<td>${employerFrequency}</td>
-				`;
-				
-				// Then, call the function to update the Investment Summary table
-				updateInvestmentSummaryTable();
-			}
-		}
-
-		// Add a unique class to each row in the Investment Summary table
-		function addInvestmentSummaryRow(investmentName, totalExpenseFee, endValue, expenseRatioPercentage) {
-			const summaryTable = document.getElementById("investmentSummaryTable").querySelector("tbody");
-
-			const newRow = document.createElement("tr");
-			newRow.classList.add(`summary-row-${investmentName}`); // Add a unique class for this row
-
-			newRow.innerHTML = `
-				<td>${investmentName}</td>
-				<td>${totalExpenseFee.toFixed(2)}</td>
-				<td>${endValue.toFixed(2)}</td>
-				<td>${expenseRatioPercentage}</td>
-			`;
-
-			summaryTable.appendChild(newRow);
-		}
-
-// Function to update the Investment Summary table
-function updateInvestmentSummaryTable() {
-    const summaryTable = document.getElementById("investmentSummaryTable").querySelector("tbody");
-    summaryTable.innerHTML = ""; // Clear existing rows
-
-    for (let i = 0; i < investmentCount; i++) {
-        const investmentName = investmentNames[i];
-        const initialBalance = parseFloat(initialBalances[i]);
-        const totalExpenseFee = investmentsData[i].reduce((sum, item) => sum + parseFloat(item.expenseFee), 0);
-
-        // Calculate total employee contribution for this investment
-        const totalEmployeeContribution = calculateTotalEmployeeContribution(i);
-
-        // Calculate total employer contribution for this investment
-        const totalEmployerContribution = calculateTotalEmployerContribution(i);
-
-        // Get the end value of the investment (value at the end of the specified number of years)
-        const endValue = parseFloat(investmentsData[i][years - 1].value);
-
-        // Calculate investment gains
-        const investmentGains = endValue - (totalEmployeeContribution + totalEmployerContribution + totalExpenseFee);
-
-        // Retrieve the expense ratio for this investment
-        const expenseRatio = parseFloat(expenseRatios[i]);
-
-        // Check if the expense ratio is a valid number
-        const expenseRatioPercentage = isNaN(expenseRatio) ? 'N/A' : (expenseRatio * 100).toFixed(2) + '%';
-
-        // Create and append the updated row
-        addInvestmentSummaryRow(investmentName, initialBalance, totalEmployeeContribution, totalEmployerContribution, endValue, investmentGains, totalExpenseFee, expenseRatioPercentage);
-    }
-}
-
-// Function to add a row to the Investment Summary table
-function addInvestmentSummaryRow(investmentName, initialBalance, totalEmployeeContribution, totalEmployerContribution, endValue, investmentGains, totalExpenseFee, expenseRatioPercentage) {
-    const summaryTable = document.getElementById("investmentSummaryTable").querySelector("tbody");
-    const newRow = document.createElement("tr");
-    newRow.innerHTML = `
-        <td>${investmentName}</td>
-        <td>${initialBalance.toFixed(2)}</td> <!-- Initial Balance -->
-        <td>${totalEmployeeContribution.toFixed(2)}</td>
-        <td>${totalEmployerContribution.toFixed(2)}</td>
-        <td>${endValue.toFixed(2)}</td>
-        <td>${investmentGains.toFixed(2)}</td>
-        <td>${totalExpenseFee.toFixed(2)}</td>
-        <td>${expenseRatioPercentage}</td>
-    `;
-    summaryTable.appendChild(newRow);
-}
-
-
-// Function to calculate the total employee contribution for a specific investment
-function calculateTotalEmployeeContribution(investmentIndex) {
-    const frequency = employeeContributions[investmentIndex].frequency;
-    const amount = employeeContributions[investmentIndex].amount;
-    return calculateContribution(amount, frequency, years) * years; // Multiply by years
-}
-
-// Function to calculate the total employer contribution for a specific investment
-function calculateTotalEmployerContribution(investmentIndex) {
-    const frequency = employerContributions[investmentIndex].frequency;
-    const amount = employerContributions[investmentIndex].amount;
-    return calculateContribution(amount, frequency, years) * years; // Multiply by years
 }
 
 //--------------------------------------------------All the Chart code is below ----------------------------------------------------------------
@@ -811,6 +794,20 @@ function calculateTotalEmployerContribution(investmentIndex) {
 			XLSX.writeFile(wb, filename);
 		}
 
+//---------------------------------------------------------------------
+// Function to download the chart as an image
+function downloadChartImage() {
+    const chartCanvas = document.getElementById("combinedBarChart");
+    const chartImage = chartCanvas.toDataURL("image/png");
+    
+    // Create a download link for the chart image
+    const downloadLink = document.createElement("a");
+    downloadLink.href = chartImage;
+    downloadLink.download = "combined_investment_chart.png";
+    
+    // Trigger a click event to start the download
+    downloadLink.click();
+}
 //------------------------------------------------------------------------
 
 		// Function to add event listeners to input fields
