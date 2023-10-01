@@ -319,10 +319,17 @@
 					const interest = endBalance * growthRate;
 					const expense = endBalance * expenseRatio;
 					endBalance += employeeContributionAmount + employerContributionAmount + interest - expense;
-					investmentData.push({ value: endBalance.toFixed(2), expenseFee: (expense).toFixed(2) });
+					//investmentData.push({ value: endBalance.toFixed(2), expenseFee: (expense).toFixed(2) });
+					            // Store investment data for each year, including contributions
+					investmentData.push({
+						value: endBalance.toFixed(2),
+						expenseFee: expense.toFixed(2),
+						employeeContribution: employeeContributionAmount.toFixed(2), // Store employee contribution
+						employerContribution: employerContributionAmount.toFixed(2)  // Store employer contribution
+						 });
 					startBalance = endBalance;
 				}
-
+				
 				investmentsData.push(investmentData);
 
 			}
@@ -578,14 +585,14 @@ function updateCombinedResultTable(years) {
         }, 0);
 
         // Calculate yearly gains, employee contribution for the year, and employer contribution for the year
-        const yearlyGains = totalAmountSum - totalExpenseSum;
         const employeeContributionForYear = investmentsData.reduce((acc, data) => {
             return acc + parseFloat(data[i].employeeContribution);
         }, 0);
         const employerContributionForYear = investmentsData.reduce((acc, data) => {
             return acc + parseFloat(data[i].employerContribution);
         }, 0);
-
+        const yearlyGains = totalAmountSum - totalExpenseSum - employeeContributionForYear - employerContributionForYear;
+		
         dataRow.innerHTML = `<td>Year ${year}</td><td>${employeeContributionForYear.toFixed(2)}</td><td>${employerContributionForYear.toFixed(2)}</td><td>${totalAmountSum.toFixed(2)}</td><td>${yearlyGains.toFixed(2)}</td><td>${totalExpenseSum.toFixed(2)}</td>`;
         table.appendChild(dataRow);
     }
