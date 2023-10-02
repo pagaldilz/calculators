@@ -172,6 +172,9 @@
 		<button onclick="exportTableToExcel('combinedResultTable', 'Combined_Investments')">Download as Excel</button>
     </div>
 
+	<button id="exportAllTables">All Tables Export to Excel</button>
+
+
     <div id="graph-container">
         <h2>Total Amount and Expense Fee by Year</h2>
         <canvas id="barChart"></canvas>
@@ -518,49 +521,6 @@ function updateResultTable(years) {
 
 
 //------------------------------------------------------------------------------------------------------
-        // Function to update the combined result table
-/*        function updateCombinedResultTable(years) {
-            const table = document.getElementById("combinedResultTable");
-            table.innerHTML = "";
-
-            // Header row
-            const headerRow = document.createElement("tr");
-            headerRow.innerHTML = "<th>Year</th><th>Total Investment Value</th><th>Total Expense Fee</th>";
-            table.appendChild(headerRow);
-
-            // Data rows
-            for (let i = 0; i < years; i++) {
-                const dataRow = document.createElement("tr");
-                const year = i + 1;
-
-                const totalAmountSum = investmentsData.reduce((acc, data) => {
-                    return acc + parseFloat(data[i].value);
-                }, 0);
-
-                const totalExpenseSum = investmentsData.reduce((acc, data) => {
-                    return acc + parseFloat(data[i].expenseFee);
-                }, 0);
-
-                dataRow.innerHTML = `<td>Year ${year}</td><td>${totalAmountSum.toFixed(2)}</td><td>${totalExpenseSum.toFixed(2)}</td>`;
-                table.appendChild(dataRow);
-            }
-
-            // Calculate and add the total sum row
-            const totalSumRow = document.createElement("tr");
-            totalSumRow.innerHTML = "<td><strong>Total Sum</strong></td>";
-
-            const totalAmountSum = investmentsData.reduce((acc, data) => {
-                return acc + data.reduce((sum, item) => sum + parseFloat(item.value), 0);
-            }, 0);
-
-            const totalExpenseSum = investmentsData.reduce((acc, data) => {
-                return acc + data.reduce((sum, item) => sum + parseFloat(item.expenseFee), 0);
-            }, 0);
-
-            totalSumRow.innerHTML += `<td><strong>${totalAmountSum.toFixed(2)}</strong></td><td><strong>${totalExpenseSum.toFixed(2)}</strong></td>`;
-            table.appendChild(totalSumRow);
-        }
-*/
 // Function to update the combined result table
 function updateCombinedResultTable(years) {
     const table = document.getElementById("combinedResultTable");
@@ -568,7 +528,7 @@ function updateCombinedResultTable(years) {
 
     // Header row
     const headerRow = document.createElement("tr");
-    headerRow.innerHTML = "<th>Year</th><th>Employee Contribution</th><th>Employer Contribution</th><th>Total Investment Value</th><th>Yearly Gains</th><th>Total Expense Fee</th>";
+    headerRow.innerHTML = "<th>Year</th><th>Employee Contribution</th><th>Employer Contribution</th><th>Investment Value</th><th>Yearly Gains</th><th>Expense Fee(s)</th>";
     table.appendChild(headerRow);
 
     // Data rows
@@ -597,7 +557,7 @@ function updateCombinedResultTable(years) {
         table.appendChild(dataRow);
     }
 
-    // Calculate and add the total sum row
+/*     // Calculate and add the total sum row
     const totalSumRow = document.createElement("tr");
     totalSumRow.innerHTML = "<td><strong>Total Sum</strong></td>";
 
@@ -605,12 +565,17 @@ function updateCombinedResultTable(years) {
         return acc + data.reduce((sum, item) => sum + parseFloat(item.value), 0);
     }, 0);
 
+	// Calculate the sum of end values for all investments
+	const totalEndValueSum = investmentsData.reduce((acc, investment) => {
+		return acc + parseFloat(investment[years - 1].value);
+	}, 0);
+
     const totalExpenseSum = investmentsData.reduce((acc, data) => {
         return acc + data.reduce((sum, item) => sum + parseFloat(item.expenseFee), 0);
     }, 0);
 
     // Calculate total yearly gains, employee contributions, and employer contributions
-    const totalYearlyGains = totalAmountSum - totalExpenseSum;
+    const totalYearlyGains = totalEndValueSum - totalExpenseSum;
     const totalEmployeeContributions = investmentsData.reduce((acc, data) => {
         return acc + data.reduce((sum, item) => sum + parseFloat(item.employeeContribution), 0);
     }, 0);
@@ -618,8 +583,8 @@ function updateCombinedResultTable(years) {
         return acc + data.reduce((sum, item) => sum + parseFloat(item.employerContribution), 0);
     }, 0);
 
-    totalSumRow.innerHTML += `<td><strong>${totalEmployeeContributions.toFixed(2)}</strong></td><td><strong>${totalEmployerContributions.toFixed(2)}</strong></td><td><strong>${totalAmountSum.toFixed(2)}</strong></td><td><strong>${totalYearlyGains.toFixed(2)}</strong></td><td><strong>${totalExpenseSum.toFixed(2)}</strong></td>`;
-    table.appendChild(totalSumRow);
+    totalSumRow.innerHTML += `<td><strong>${totalEmployeeContributions.toFixed(2)}</strong></td><td><strong>${totalEmployerContributions.toFixed(2)}</strong></td><td><strong>${totalEndValueSum.toFixed(2)}</strong></td><td><strong>${totalYearlyGains.toFixed(2)}</strong></td><td><strong>${totalExpenseSum.toFixed(2)}</strong></td>`;
+    table.appendChild(totalSumRow); */
 }
 
 
@@ -803,6 +768,61 @@ function updateCombinedResultTable(years) {
 			// Save the workbook as an Excel file
 			XLSX.writeFile(wb, filename);
 		}
+
+//----------------------------------------------------------------------------------------
+/* 		document.getElementById("exportButton").addEventListener("click", function () {
+		  // Create a new workbook
+		  const wb = XLSX.utils.book_new();
+
+		  // Export the individual tables to separate worksheets
+		  const tables = document.querySelectorAll("investmentTable");
+		  tables.forEach((table, index) => {
+			const ws = XLSX.utils.table_to_sheet(table);
+			XLSX.utils.book_append_sheet(wb, ws, `Sheet${index + 1}`);
+		  });
+
+		  // Create a blob from the workbook
+		  const blob = XLSX.write(wb, { bookType: "xlsx", type: "blob" });
+
+		  // Create a download link and trigger the download
+		  const url = URL.createObjectURL(blob);
+		  const a = document.createElement("a");
+		  a.href = url;
+		  a.download = "tables.xlsx";
+		  a.style.display = "none";
+		  document.body.appendChild(a);
+		  a.click();
+		  document.body.removeChild(a);
+		  URL.revokeObjectURL(url);
+		}); */
+
+		document.getElementById("exportAllTables").addEventListener("click", function () {
+		  const wb = XLSX.utils.book_new();
+
+		  // Export Investment Table
+		  const investmentTable = document.getElementById("investmentTable");
+		  const investmentWS = XLSX.utils.table_to_sheet(investmentTable);
+		  XLSX.utils.book_append_sheet(wb, investmentWS, "Investment Table");
+
+		  // Export Investment Summary Table
+		  const investmentSummaryTable = document.getElementById("investmentSummaryTable");
+		  const investmentSummaryWS = XLSX.utils.table_to_sheet(investmentSummaryTable);
+		  XLSX.utils.book_append_sheet(wb, investmentSummaryWS, "Investment Summary Table");
+
+		  // Export Result Table
+		  const resultTable = document.getElementById("resultTable");
+		  const resultWS = XLSX.utils.table_to_sheet(resultTable);
+		  XLSX.utils.book_append_sheet(wb, resultWS, "Result Table");
+
+		  // Export Combined Result Table
+		  const combinedResultTable = document.getElementById("combinedResultTable");
+		  const combinedResultWS = XLSX.utils.table_to_sheet(combinedResultTable);
+		  XLSX.utils.book_append_sheet(wb, combinedResultWS, "Combined Result Table");
+
+		  // Save the workbook as an Excel file
+		  XLSX.writeFile(wb, "investment_tables.xlsx");
+		});
+
 
 //---------------------------------------------------------------------
 		// Function to download the chart as an image
