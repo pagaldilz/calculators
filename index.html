@@ -3,49 +3,1028 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>List of Investment Calcuators Created Using ChatGPT</title>
+    <title>Portfolio Fee Calculator</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN for charting -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        /* Custom styles for better aesthetics and responsiveness */
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-            text-align: center;
-            padding: 20px;
+            font-family: "Inter", sans-serif;
+            background-color: #f4f7f6; /* Lighter, subtle background */
+            color: #334155; /* Darker text for readability */
         }
-
-        h1 {
-            color: #333;
-        }
-
         .container {
-            background-color: #fff;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+            max-width: 96%; /* Slightly wider container for more space */
+            margin: 2rem auto;
+            padding: 2.5rem; /* Increased padding */
+            background-color: #ffffff;
+            border-radius: 1.25rem; /* More pronounced rounded corners */
+            box-shadow: 0 15px 30px -8px rgba(0, 0, 0, 0.08), 0 8px 15px -4px rgba(0, 0, 0, 0.03); /* Softer, deeper shadow */
+            transition: all 0.3s ease-in-out; /* Smooth transition for any future interactions */
         }
-
-        .link-button {
-            display: inline-block;
-            margin: 10px;
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: #fff;
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: bold;
-            transition: background-color 0.3s ease;
+        textarea {
+            min-height: 180px; /* Taller textarea */
+            resize: vertical; /* Allow vertical resizing */
+            @apply shadow-inner; /* Inset shadow for depth */
         }
-
-        .link-button:hover {
-            background-color: #0056b3;
+        table {
+            width: 100%;
+            border-collapse: separate; /* Allows for rounded corners on cells */
+            border-spacing: 0;
+        }
+        th, td {
+            padding: 1rem 1.25rem; /* More padding in table cells */
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0; /* Lighter border */
+        }
+        th {
+            background-color: #f8fafc; /* Very light gray for header */
+            cursor: pointer;
+            position: relative;
+            user-select: none; /* Prevent text selection on header click */
+            font-weight: 600; /* Slightly bolder header text */
+            color: #1e293b; /* Darker header text */
+            transition: background-color 0.2s ease-in-out;
+        }
+        th:hover {
+            background-color: #eef2f6; /* Subtle hover effect */
+        }
+        th.sorted-asc::after {
+            content: ' ▲'; /* Up arrow for ascending */
+            position: absolute;
+            right: 15px;
+            color: #4a5568;
+            font-size: 0.8em;
+        }
+        th.sorted-desc::after {
+            content: ' ▼'; /* Down arrow for descending */
+            position: absolute;
+            right: 15px;
+            color: #4a5568;
+            font-size: 0.8em;
+        }
+        tr:last-child td {
+            border-bottom: none; /* No border on last row */
+        }
+        .total-fees, .projected-fees {
+            font-size: 1.6rem; /* Slightly larger font for totals */
+            font-weight: 700; /* Bold */
+            color: #0d9488; /* Teal color for emphasis */
+            margin-top: 2rem; /* More space above */
+            padding-top: 1.5rem; /* More padding above */
+            border-top: 1px solid #cbd5e1; /* Slightly darker border for separation */
+        }
+        .btn {
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease; /* Smooth transitions */
+            @apply rounded-full; /* Ensure all buttons are fully rounded */
+        }
+        .btn:hover {
+            transform: translateY(-2px); /* More pronounced lift on hover */
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); /* More visible shadow on hover */
+        }
+        .message-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 2.5rem; /* More padding */
+            border-radius: 1rem; /* More rounded corners */
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.25); /* Stronger shadow for modals */
+            z-index: 1000;
+            text-align: center;
+            max-width: 450px; /* Slightly wider */
+            width: 90%;
+            animation: fadeIn 0.3s ease-out; /* Fade in animation */
+        }
+        .message-box-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6); /* Darker overlay */
+            z-index: 999;
+            animation: fadeIn 0.3s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .remove-btn {
+            background-color: #ef4444; /* Red for remove button */
+            color: white;
+            padding: 0.4rem 0.8rem; /* Slightly larger padding */
+            border-radius: 0.75rem; /* More rounded */
+            font-size: 0.85rem; /* Slightly larger font */
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+        .remove-btn:hover {
+            background-color: #dc2626;
+            transform: translateY(-1px);
+        }
+        #portfolioChartContainer {
+            position: relative;
+            height: 450px; /* Slightly taller chart */
+            width: 100%;
+            margin-top: 3rem; /* More space above chart */
+            padding: 2rem; /* More padding */
+            background-color: #ffffff;
+            border-radius: 1.25rem;
+            box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.08);
+            display: flex; /* Use flexbox for internal layout */
+            flex-direction: column; /* Stack children vertically */
+        }
+        #portfolioChartCanvas {
+            flex-grow: 1; /* Allow canvas to take available space */
+            width: 100%; /* Ensure canvas takes full width of its container */
+            height: auto; /* Allow height to adjust based on aspect ratio or container */
+        }
+        .allocation-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.75rem; /* More vertical spacing */
+        }
+        .allocation-item label {
+            flex-grow: 1;
+            margin-right: 1.5rem; /* More space */
+            font-weight: 500;
+            color: #475569;
+        }
+        .allocation-item input {
+            width: 90px; /* Slightly wider for better input */
+            text-align: right;
+            @apply shadow-inner; /* Inset shadow for depth */
+        }
+        /* Styles for the summary boxes */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem; /* Space between boxes */
+            margin-top: 1.5rem; /* Added margin to separate from projected fees text */
+        }
+        @media (min-width: 768px) { /* Medium screens and up */
+            .summary-grid {
+                grid-template-columns: repeat(3, 1fr); /* 3 columns on larger screens */
+            }
+        }
+        .summary-box {
+            background-color: #f0f9ff; /* Light blue */
+            border-radius: 1rem;
+            padding: 1rem; /* Reduced padding for more compact look */
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            display: flex; /* Use flexbox for internal alignment */
+            flex-direction: column; /* Stack value and label */
+            justify-content: center; /* Center content vertically */
+            align-items: center; /* Center content horizontally */
+            min-height: 100px; /* Ensure a minimum height for consistency */
+        }
+        .summary-box .value {
+            font-size: 1.8rem; /* Slightly smaller font for values to prevent overflow */
+            font-weight: 800;
+            color: #0d9488; /* Teal */
+            margin-bottom: 0.25rem; /* Reduced margin */
+            line-height: 1.2; /* Adjust line height */
+            word-break: break-word; /* Allow long words to break */
+        }
+        .summary-box .label {
+            font-size: 0.9rem; /* Slightly smaller label font */
+            color: #475569;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+        .percentage-lost {
+            font-size: 2.2rem; /* Slightly smaller for percentage */
+            font-weight: 900;
+            color: #ef4444; /* Red for emphasis */
+            margin-bottom: 0.25rem;
+            line-height: 1.2;
+        }
+        .percentage-label {
+            font-size: 1rem; /* Slightly smaller label font */
+            color: #475569;
+            font-weight: 600;
+            line-height: 1.2;
         }
     </style>
 </head>
-<body>
+<body class="p-4 sm:p-8">
     <div class="container">
-        <h1>List of Investment Calcuators</h1>
-        <p>Click the links below to navigate to different Calcuators:</p>
-        <a href="feecalculator.html" class="link-button">Future Investment Value Calculator</a>
-        <!-- Add more links to other pages here -->
+        <h1 class="text-4xl font-extrabold text-center mb-8 text-gray-900">Portfolio Fee Calculator</h1>
+
+        <!-- Instructions Section -->
+        <div class="mb-10 p-8 bg-blue-50 border-l-4 border-blue-400 text-blue-800 rounded-xl shadow-md">
+            <h2 class="text-2xl font-bold mb-4">Instructions:</h2>
+            <p class="mb-3 text-lg">
+                Please paste your portfolio data into the text area below. Each line should represent one asset, and the values should be separated by commas (CSV format).
+            </p>
+            <p class="mb-2 text-lg">
+                You can use two formats:
+            </p>
+            <ul class="list-disc list-inside mb-4 ml-6 space-y-2">
+                <li>
+                    <p class="mb-1">
+                        <span class="font-semibold">Standard Format (3 columns):</span>
+                        <code class="font-mono bg-blue-100 px-2 py-1 rounded-md text-blue-900 text-base">Asset Name,Value (USD),Expense Ratio (%)</code>
+                    </p>
+                    <p class="mb-2 text-sm text-blue-700">
+                        Example: <code class="bg-blue-100 px-2 py-1 rounded-md text-blue-900 text-base">Vanguard S&P 500 ETF,10000.00,0.03</code>
+                    </p>
+                </li>
+                <li>
+                    <p class="mb-1">
+                        <span class="font-semibold">Detailed Format (5 columns):</span>
+                        <code class="font-mono bg-blue-100 px-2 py-1 rounded-md text-blue-900 text-base">Ticker,Asset Name,Value (USD),Expense Ratio (%),Asset Type</code>
+                    </p>
+                    <p class="mb-2 text-sm text-blue-700">
+                        Example: <code class="bg-blue-100 px-2 py-1 rounded-md text-blue-900 text-base">XYZ, X Corp Inc, "10000.00", 0.03,Stock</code>
+                        <br><span class="text-sm text-blue-700">Note: Value can be quoted if it contains commas.</span>
+                    </p>
+                </li>
+            </ul>
+            <p class="mt-4 text-base text-blue-700">
+                Ensure "Value" is a number (e.g., 10000.00) and "Expense Ratio" is a percentage (e.g., 0.03 for 0.03%).
+            </p>
+        </div>
+
+        <!-- Input Area -->
+        <div class="mb-8">
+            <label for="portfolioData" class="block text-xl font-medium text-gray-700 mb-3">Paste Your Portfolio Data Here:</label>
+            <textarea id="portfolioData" class="w-full p-5 border border-gray-300 rounded-xl focus:ring-4 focus:ring-teal-400 focus:border-transparent outline-none shadow-lg" placeholder="Paste your data here, e.g.:&#10;Vanguard S&P 500 ETF,10000.00,0.03&#10;Apple Stock,5000.00,0.00&#10;XYZ, X Corp Inc, &quot;10000.00&quot;, 0.03,Stock"></textarea>
+        </div>
+
+        <!-- Process Button -->
+        <div class="flex justify-center mb-10">
+            <button id="processDataBtn" class="btn bg-teal-600 hover:bg-teal-700 text-white font-bold py-4 px-10 rounded-full shadow-xl focus:outline-none focus:ring-4 focus:ring-teal-300 transform active:scale-95">
+                Calculate Fees
+            </button>
+        </div>
+
+        <!-- Portfolio Table -->
+        <div id="portfolioTableContainer" class="overflow-x-auto mb-10 hidden">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-5">Your Portfolio Holdings:</h2>
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th data-sort-by="assetName" class="px-6 py-4 text-sm font-medium text-gray-600 uppercase tracking-wider rounded-tl-xl">Asset Name</th>
+                            <th data-sort-by="value" class="px-6 py-4 text-sm font-medium text-gray-600 uppercase tracking-wider">Value (USD)</th>
+                            <th data-sort-by="expenseRatio" class="px-6 py-4 text-sm font-medium text-gray-600 uppercase tracking-wider">Expense Ratio (%)</th>
+                            <th data-sort-by="calculatedFee" class="px-6 py-4 text-sm font-medium text-gray-600 uppercase tracking-wider">Current Annual Fee (USD)</th>
+                            <th data-sort-by="projectedOverallFee" class="px-6 py-4 text-sm font-medium text-gray-600 uppercase tracking-wider">Projected Overall Fee (USD)</th>
+                            <th class="px-6 py-4 text-sm font-medium text-gray-600 uppercase tracking-wider rounded-tr-xl">Remove</th>
+                        </tr>
+                    </thead>
+                    <tbody id="portfolioTableBody" class="bg-white divide-y divide-gray-100">
+                        <!-- Data will be inserted here by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Total Fees Display -->
+        <div id="totalFeesDisplay" class="total-fees text-right pr-8 hidden">
+            <div class="mb-3">Current Annual Fees: <span id="totalFeesValue" class="text-teal-700">$0.00</span></div>
+            <div>Overall Portfolio Expense Ratio: <span id="overallExpenseRatioValue" class="text-teal-700">0.000%</span></div>
+        </div>
+
+        <!-- Contributions and Retirement Section -->
+        <div id="contributionsSection" class="mt-12 p-8 bg-green-50 border-l-4 border-green-400 text-green-800 rounded-xl shadow-md hidden">
+            <h2 class="text-2xl font-semibold mb-6">Projected Fees with Contributions</h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <div>
+                    <label for="employeeContribution" class="block text-base font-medium text-gray-700 mb-2">Annual Employee Contribution (USD):</label>
+                    <input type="number" id="employeeContribution" value="0" min="0" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-3 focus:ring-green-400 focus:border-transparent outline-none shadow-sm">
+                </div>
+                <div>
+                    <label for="employerContribution" class="block text-base font-medium text-gray-700 mb-2">Annual Employer Contribution (USD):</label>
+                    <input type="number" id="employerContribution" value="0" min="0" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-3 focus:ring-green-400 focus:border-transparent outline-none shadow-sm">
+                </div>
+                <div>
+                    <label for="annualGrowthRate" class="block text-base font-medium text-gray-700 mb-2">Annual Growth Rate (%):</label>
+                    <input type="number" id="annualGrowthRate" value="7" min="0" step="0.1" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-3 focus:ring-green-400 focus:border-transparent outline-none shadow-sm">
+                </div>
+                <div>
+                    <label for="retirementYear" class="block text-base font-medium text-gray-700 mb-2">Year of Retirement:</label>
+                    <input type="number" id="retirementYear" value="2050" min="2024" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-3 focus:ring-green-400 focus:border-transparent outline-none shadow-sm">
+                </div>
+            </div>
+
+            <!-- New Contribution Distribution Section -->
+            <div id="contributionDistributionSection" class="mt-8 p-6 bg-green-100 rounded-xl shadow-inner hidden">
+                <h3 class="text-xl font-semibold mb-4 text-green-900">Distribute Annual Contributions (%)</h3>
+                <div id="allocationInputs" class="mb-4 space-y-2">
+                    <!-- Allocation inputs will be dynamically generated here -->
+                </div>
+                <div class="text-right text-base font-medium text-gray-700 pt-2 border-t border-green-200">
+                    Total Allocated: <span id="totalAllocationPercentage" class="font-bold text-green-700">0%</span>
+                    <span id="allocationWarning" class="text-red-600 ml-3 hidden"> (Must sum to 100%)</span>
+                </div>
+            </div>
+
+            <div class="flex justify-center mt-8">
+                <button id="calculateProjectedFeesBtn" class="btn bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-10 rounded-full shadow-xl focus:outline-none focus:ring-4 focus:ring-green-300 transform active:scale-95">
+                    Calculate Projected Fees
+                </button>
+            </div>
+
+            <div id="projectedFeesDisplay" class="projected-fees text-right pr-8 mt-8 hidden">
+                Projected Overall Fees until Retirement: <span id="projectedOverallFeesValue" class="text-teal-700">$0.00</span>
+                <!-- Summary boxes are now here -->
+                <div class="summary-grid">
+                    <div class="summary-box">
+                        <div class="value text-teal-700" id="totalContributionsValue">$0.00</div>
+                        <div class="label">Total Contributions</div>
+                    </div>
+                    <div class="summary-box">
+                        <div class="value text-blue-700" id="totalEarningsValue">$0.00</div>
+                        <div class="label">Total Earnings</div>
+                    </div>
+                    <div class="summary-box">
+                        <div class="percentage-lost" id="percentageLostToFees">0%</div>
+                        <div class="percentage-label">OF EARNINGS LOST TO FEES</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart Section -->
+        <div id="portfolioChartContainer" class="p-6 bg-white rounded-xl shadow-lg hidden">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-5">Portfolio Value & Annual Fees Over Time</h2>
+            <canvas id="portfolioChart" style="display: block; width: 100%; height: 100%;"></canvas>
+        </div>
+
     </div>
+
+    <script>
+        // Array to store parsed portfolio data
+        let portfolioData = [];
+        // Variable to keep track of current sort column and direction
+        let currentSort = { column: null, direction: 'asc' };
+        // Chart instance
+        let portfolioChartInstance = null;
+
+        // Get DOM elements
+        const portfolioDataTextarea = document.getElementById('portfolioData');
+        const processDataBtn = document.getElementById('processDataBtn');
+        const portfolioTableContainer = document.getElementById('portfolioTableContainer');
+        const portfolioTableBody = document.getElementById('portfolioTableBody');
+        const totalFeesDisplay = document.getElementById('totalFeesDisplay');
+        const totalFeesValue = document.getElementById('totalFeesValue');
+        const overallExpenseRatioValue = document.getElementById('overallExpenseRatioValue');
+        const contributionsSection = document.getElementById('contributionsSection');
+        const employeeContributionInput = document.getElementById('employeeContribution');
+        const employerContributionInput = document.getElementById('employerContribution');
+        const annualGrowthRateInput = document.getElementById('annualGrowthRate');
+        const retirementYearInput = document.getElementById('retirementYear');
+        const calculateProjectedFeesBtn = document.getElementById('calculateProjectedFeesBtn');
+        const projectedFeesDisplay = document.getElementById('projectedFeesDisplay');
+        const projectedOverallFeesValue = document.getElementById('projectedOverallFeesValue');
+        const portfolioChartContainer = document.getElementById('portfolioChartContainer');
+        const portfolioChartCanvas = document.getElementById('portfolioChart');
+
+        // New elements for custom contribution distribution
+        const contributionDistributionSection = document.getElementById('contributionDistributionSection');
+        const allocationInputsDiv = document.getElementById('allocationInputs');
+        const totalAllocationPercentageSpan = document.getElementById('totalAllocationPercentage');
+        const allocationWarningSpan = document.getElementById('allocationWarning');
+
+        // Elements for chart summary (now back in this file)
+        const totalContributionsValueSpan = document.getElementById('totalContributionsValue');
+        const totalEarningsValueSpan = document.getElementById('totalEarningsValue');
+        const percentageLostToFeesSpan = document.getElementById('percentageLostToFees');
+
+
+        /**
+         * Displays a custom message box instead of alert().
+         * @param {string} message - The message to display.
+         * @param {string} type - Type of message (e.g., 'error', 'info').
+         */
+        function showMessageBox(message, type = 'info') {
+            // Remove existing message box if any
+            const existingMessageBox = document.querySelector('.message-box');
+            const existingOverlay = document.querySelector('.message-box-overlay');
+            if (existingMessageBox) existingMessageBox.remove();
+            if (existingOverlay) existingOverlay.remove();
+
+            const overlay = document.createElement('div');
+            overlay.className = 'message-box-overlay';
+            document.body.appendChild(overlay);
+
+            const messageBox = document.createElement('div');
+            messageBox.className = 'message-box';
+            messageBox.innerHTML = `
+                <p class="text-lg font-semibold mb-4 ${type === 'error' ? 'text-red-600' : 'text-gray-800'}">${message}</p>
+                <button class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-6 rounded-full focus:outline-none focus:ring-2 focus:ring-teal-300" onclick="this.parentNode.remove(); document.querySelector('.message-box-overlay').remove();">OK</button>
+            `;
+            document.body.appendChild(messageBox);
+        }
+
+        /**
+         * Renders the portfolio value and annual fees over time using Chart.js.
+         * @param {Array<number>} years - Array of years for the x-axis.
+         * @param {Array<number>} portfolioValues - Array of total portfolio values for each year.
+         * @param {Array<number>} annualFees - Array of total annual fees for each year.
+         * @param {number} totalContributions - The total sum of all contributions over the projection period.
+         * @param {number} totalProjectedFees - The total sum of all fees over the projection period.
+         * @param {number} initialPortfolioValue - The starting portfolio value.
+         */
+        function renderPortfolioChart(years, portfolioValues, annualFees, totalContributions, totalProjectedFees, initialPortfolioValue) {
+            if (portfolioChartInstance) {
+                portfolioChartInstance.destroy(); // Destroy previous chart instance if it exists
+            }
+
+            const ctx = portfolioChartCanvas.getContext('2d');
+
+            // Calculate earnings: Final Portfolio Value - Initial Portfolio Value - Total Contributions
+            const finalPortfolioValue = portfolioValues[portfolioValues.length - 1];
+            const totalEarnings = finalPortfolioValue - initialPortfolioValue - totalContributions;
+
+            // Calculate percentage of earnings lost to fees
+            let percentageLost = 0;
+            if (totalEarnings > 0) {
+                percentageLost = (totalProjectedFees / totalEarnings) * 100;
+            } else if (totalEarnings < 0 && totalProjectedFees > 0) {
+                // If there are losses and fees, it means fees contribute to more loss
+                percentageLost = 100; // Or handle as an infinite loss scenario
+            }
+
+
+            // Update the summary boxes with formatted numbers
+            totalContributionsValueSpan.textContent = `$${totalContributions.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            totalEarningsValueSpan.textContent = `$${totalEarnings.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            percentageLostToFeesSpan.textContent = `${percentageLost.toFixed(1)}%`;
+
+
+            portfolioChartInstance = new Chart(ctx, {
+                type: 'line', // Still a line chart, but we'll use stacked property
+                data: {
+                    labels: years,
+                    datasets: [
+                        {
+                            label: 'Portfolio Value (excluding fees)', // This will be the base of the stack
+                            data: portfolioValues.map((val, index) => val - annualFees[index]), // Value without fees
+                            borderColor: 'rgb(13, 148, 136)', // Teal color
+                            backgroundColor: 'rgba(13, 148, 136, 0.8)', // Solid teal fill for value
+                            fill: true, // Fill area under the line
+                            tension: 0.3, // Smooth curves
+                            stack: 'combined', // Stack this dataset
+                            pointRadius: 0, // Hide points for a cleaner area look
+                            pointHoverRadius: 5,
+                            pointBackgroundColor: 'rgb(13, 148, 136)'
+                        },
+                        {
+                            label: 'Fees', // This will stack on top of the portfolio value
+                            data: annualFees,
+                            borderColor: 'rgb(239, 68, 68)', // Red color for fees
+                            backgroundColor: 'rgba(239, 68, 68, 0.6)', // Red fill for fees
+                            fill: true, // Fill area under the line
+                            tension: 0.3,
+                            stack: 'combined', // Stack this dataset
+                            pointRadius: 0, // Hide points
+                            pointHoverRadius: 5,
+                            pointBackgroundColor: 'rgb(239, 68, 68)'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Projected Portfolio Value and Fees Over Time',
+                            font: {
+                                size: 20,
+                                weight: 'bold'
+                            },
+                            color: '#334155'
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed.y);
+                                    }
+                                    return label;
+                                },
+                                // Custom tooltip title to show total portfolio value including fees
+                                title: function(tooltipItems) {
+                                    const year = tooltipItems[0].label;
+                                    const totalValue = tooltipItems.reduce((sum, item) => sum + item.parsed.y, 0);
+                                    return `Year: ${year}\nTotal Portfolio: ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(totalValue)}`;
+                                }
+                            }
+                        },
+                        legend: {
+                            position: 'bottom', // Move legend to bottom
+                            labels: {
+                                font: {
+                                    size: 14
+                                },
+                                color: '#475569'
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Year',
+                                font: {
+                                    size: 16
+                                },
+                                color: '#4a5568'
+                            },
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: { // Single Y-axis for stacked chart
+                            stacked: true, // Enable stacking
+                            title: {
+                                display: true,
+                                text: 'Value (USD)',
+                                font: {
+                                    size: 16
+                                },
+                                color: '#4a5568'
+                            },
+                            ticks: {
+                                callback: function(value, index, ticks) {
+                                    return '$' + value.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        /**
+         * Parses the raw text input from the textarea into structured portfolio data.
+         * @param {string} rawData - The raw text data from the textarea.
+         * @returns {Array<Object>} An array of portfolio asset objects.
+         */
+        function parsePortfolioData(rawData) {
+            const lines = rawData.trim().split('\n');
+            const parsed = [];
+            let hasError = false;
+
+            // Regex to split CSV line, handling quoted commas.
+            // It splits on a comma that is not preceded by an odd number of quotes.
+            const csvSplitRegex = /,(?=(?:(?:[^"]*"){2})*[^"]*$)/;
+
+            lines.forEach((line, index) => {
+                const parts = line.split(csvSplitRegex).map(part => part.trim());
+
+                let assetName, valueStr, expenseRatioStr;
+
+                if (parts.length === 3) {
+                    // Old format: Asset Name,Value (USD),Expense Ratio (%)
+                    assetName = parts[0];
+                    valueStr = parts[1];
+                    expenseRatioStr = parts[2];
+                } else if (parts.length === 5) {
+                    // New format: Ticker,Asset Name,Value (USD) (quoted),Expense Ratio (%),Asset Type
+                    assetName = parts[1]; // The actual asset name
+                    valueStr = parts[2]; // The potentially quoted value string
+                    expenseRatioStr = parts[3]; // The expense ratio
+                } else {
+                    showMessageBox(`Error on line ${index + 1}: Each line must have 3 (Asset Name, Value, Expense Ratio) or 5 (Ticker, Asset Name, Value, Expense Ratio, Asset Type) comma-separated values.`, 'error');
+                    hasError = true;
+                    return;
+                }
+
+                // Clean valueStr: remove quotes and commas if present
+                valueStr = valueStr.replace(/"/g, '').replace(/,/g, ''); /* FIX: Changed valueValue to valueStr */
+
+                const value = parseFloat(valueStr);
+                const expenseRatio = parseFloat(expenseRatioStr);
+
+                if (isNaN(value) || value < 0) {
+                    showMessageBox(`Error on line ${index + 1}: 'Value' must be a non-negative number. Found '${valueStr}'.`, 'error');
+                    hasError = true;
+                    return;
+                }
+                if (isNaN(expenseRatio) || expenseRatio < 0) {
+                    showMessageBox(`Error on line ${index + 1}: 'Expense Ratio' must be a non-negative number. Found '${expenseRatioStr}'.`, 'error');
+                    hasError = true;
+                    return;
+                }
+
+                parsed.push({
+                    assetName: assetName,
+                    value: value,
+                    expenseRatio: expenseRatio, // Stored as a decimal (e.g., 0.03 for 0.03%)
+                    calculatedFee: value * (expenseRatio / 100), // Current annual fee
+                    projectedOverallFee: 0, // Initialize the new property for projected fees
+                    allocationPercentage: 0 // New property for contribution allocation
+                });
+            });
+
+            return hasError ? [] : parsed; // Return empty array if any error occurred
+        }
+
+        /**
+         * Renders the portfolio data into the HTML table.
+         * @param {Array<Object>} data - The array of portfolio asset objects to render.
+         */
+        function renderPortfolioTable(data) {
+            portfolioTableBody.innerHTML = ''; // Clear existing rows
+            let totalFees = 0;
+            let totalPortfolioValue = 0; // New variable to sum up total portfolio value
+
+            if (data.length === 0) {
+                portfolioTableContainer.classList.add('hidden');
+                totalFeesDisplay.classList.add('hidden');
+                contributionsSection.classList.add('hidden');
+                projectedFeesDisplay.classList.add('hidden');
+                portfolioChartContainer.classList.add('hidden');
+                contributionDistributionSection.classList.add('hidden'); // Hide allocation section
+                // Reset summary display if no data
+                totalContributionsValueSpan.textContent = `$${(0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                totalEarningsValueSpan.textContent = `$${(0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                percentageLostToFeesSpan.textContent = `${(0).toFixed(1)}%`;
+                if (portfolioChartInstance) {
+                    portfolioChartInstance.destroy(); // Destroy chart if no data
+                    portfolioChartInstance = null;
+                }
+                return;
+            }
+
+            data.forEach((asset, index) => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50'; // Subtle hover effect for rows
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${asset.assetName}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">$${asset.value.toFixed(2)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${asset.expenseRatio.toFixed(2)}%</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">$${asset.calculatedFee.toFixed(2)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">$${asset.projectedOverallFee ? asset.projectedOverallFee.toFixed(2) : '0.00'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button class="remove-btn bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-2 rounded-md" data-index="${index}">Remove</button>
+                    </td>
+                `;
+                portfolioTableBody.appendChild(row);
+                totalFees += asset.calculatedFee;
+                totalPortfolioValue += asset.value; // Accumulate total portfolio value
+            });
+
+            totalFeesValue.textContent = `$${totalFees.toFixed(2)}`;
+
+            // Calculate Overall Portfolio Expense Ratio
+            let overallExpenseRatio = 0;
+            if (totalPortfolioValue > 0) {
+                overallExpenseRatio = (totalFees / totalPortfolioValue) * 100;
+            }
+            // Changed toFixed(3) for three decimal places
+            overallExpenseRatioValue.textContent = `${overallExpenseRatio.toFixed(3)}%`;
+
+
+            portfolioTableContainer.classList.remove('hidden');
+            totalFeesDisplay.classList.remove('hidden');
+            contributionsSection.classList.remove('hidden'); // Show contributions section once data is loaded
+            contributionDistributionSection.classList.remove('hidden'); // Show allocation section
+
+            // Attach event listeners to remove buttons
+            document.querySelectorAll('.remove-btn').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const indexToRemove = parseInt(event.target.dataset.index);
+                    removeHolding(indexToRemove);
+                });
+            });
+
+            renderAllocationInputs(); // Render the new allocation inputs
+        }
+
+        /**
+         * Removes a portfolio holding by index and re-renders the table.
+         * @param {number} index - The index of the asset to remove.
+         */
+        function removeHolding(index) {
+            if (index > -1 && index < portfolioData.length) {
+                portfolioData.splice(index, 1); // Remove the asset
+                // Re-calculate current fees for remaining assets
+                portfolioData.forEach(asset => {
+                    asset.calculatedFee = asset.value * (asset.expenseRatio / 100);
+                });
+                // Re-render the table first
+                renderPortfolioTable(portfolioData);
+                // If table becomes empty, hide sections
+                if (portfolioData.length === 0) {
+                    portfolioTableContainer.classList.add('hidden');
+                    totalFeesDisplay.classList.add('hidden');
+                    contributionsSection.classList.add('hidden');
+                    projectedFeesDisplay.classList.add('hidden');
+                    portfolioChartContainer.classList.add('hidden');
+                    contributionDistributionSection.classList.add('hidden'); // Hide allocation section
+                    // Reset summary display if no data
+                    totalContributionsValueSpan.textContent = `$${(0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                    totalEarningsValueSpan.textContent = `$${(0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                    percentageLostToFeesSpan.textContent = `${(0).toFixed(1)}%`;
+                    if (portfolioChartInstance) {
+                        portfolioChartInstance.destroy();
+                        portfolioChartInstance = null;
+                    }
+                } else {
+                    // If still has data, re-calculate projected fees to update chart and the new column
+                    calculateProjectedFees();
+                }
+            }
+        }
+
+        /**
+         * Sorts the portfolio data based on the specified column and direction.
+         * @param {string} column - The key of the column to sort by.
+         */
+        function sortPortfolioData(column) {
+            // If clicking the same column, toggle direction
+            if (currentSort.column === column) {
+                currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                // If clicking a new column, set it as current and default to ascending
+                currentSort.column = column;
+                currentSort.direction = 'asc';
+            }
+
+            // Sort the data
+            portfolioData.sort((a, b) => {
+                let valA = a[column];
+                let valB = b[column];
+
+                // Handle string comparison for assetName
+                if (typeof valA === 'string') {
+                    return currentSort.direction === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(a);
+                }
+                // Handle numeric comparison for others (including projectedOverallFee)
+                return currentSort.direction === 'asc' ? valA - valB : valB - valA;
+            });
+
+            // Re-render the table with sorted data
+            renderPortfolioTable(portfolioData);
+            updateSortIcons();
+        }
+
+        /**
+         * Updates the sort icons in the table headers.
+         */
+        function updateSortIcons() {
+            document.querySelectorAll('th[data-sort-by]').forEach(th => {
+                th.classList.remove('sorted-asc', 'sorted-desc');
+                if (th.dataset.sortBy === currentSort.column) {
+                    th.classList.add(`sorted-${currentSort.direction}`);
+                }
+            });
+        }
+
+        /**
+         * Dynamically renders input fields for contribution allocation percentages.
+         */
+        function renderAllocationInputs() {
+            allocationInputsDiv.innerHTML = ''; // Clear existing inputs
+            if (portfolioData.length === 0) {
+                contributionDistributionSection.classList.add('hidden');
+                return;
+            }
+
+            portfolioData.forEach((asset, index) => {
+                const div = document.createElement('div');
+                div.className = 'allocation-item';
+                div.innerHTML = `
+                    <label for="allocation-${index}" class="text-sm text-gray-700">${asset.assetName}:</label>
+                    <input type="number" id="allocation-${index}" data-index="${index}" value="${asset.allocationPercentage}" min="0" max="100" step="0.1"
+                           class="w-20 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none shadow-sm text-right">
+                    <span class="ml-1">%</span>
+                `;
+                allocationInputsDiv.appendChild(div);
+            });
+
+            // Add event listeners to update total percentage
+            document.querySelectorAll('#allocationInputs input').forEach(input => {
+                input.addEventListener('input', updateAllocationTotal);
+            });
+            updateAllocationTotal(); // Initial update
+        }
+
+        /**
+         * Updates the displayed total allocation percentage and shows/hides warning.
+         */
+        function updateAllocationTotal() {
+            let total = 0;
+            document.querySelectorAll('#allocationInputs input').forEach(input => {
+                const percentage = parseFloat(input.value);
+                if (!isNaN(percentage) && percentage >= 0) {
+                    total += percentage;
+                    // Update the allocationPercentage in portfolioData
+                    const index = parseInt(input.dataset.index);
+                    if (portfolioData[index]) {
+                        portfolioData[index].allocationPercentage = percentage;
+                    }
+                }
+            });
+            totalAllocationPercentageSpan.textContent = `${total.toFixed(1)}%`;
+            // Only show warning if there are contributions AND total is not 100%
+            const annualContribution = parseFloat(employeeContributionInput.value) + parseFloat(employerContributionInput.value);
+            if (annualContribution > 0 && Math.abs(total - 100) > 0.01) {
+                allocationWarningSpan.classList.remove('hidden');
+            } else {
+                allocationWarningSpan.classList.add('hidden');
+            }
+        }
+
+        /**
+         * Calculates the projected overall fees until retirement, considering annual contributions and growth.
+         * Also calculates and updates projected fees for each individual holding.
+         */
+        function calculateProjectedFees() {
+            const employeeContribution = parseFloat(employeeContributionInput.value);
+            const employerContribution = parseFloat(employerContributionInput.value);
+            const annualGrowthRate = parseFloat(annualGrowthRateInput.value);
+            const retirementYear = parseInt(retirementYearInput.value);
+
+            if (isNaN(employeeContribution) || employeeContribution < 0) {
+                showMessageBox('Please enter a valid non-negative number for Employee Contribution.', 'error');
+                return;
+            }
+            if (isNaN(employerContribution) || employerContribution < 0) {
+                showMessageBox('Please enter a valid non-negative number for Employer Contribution.', 'error');
+                return;
+            }
+            if (isNaN(annualGrowthRate) || annualGrowthRate < 0) {
+                showMessageBox('Please enter a valid non-negative number for Annual Growth Rate.', 'error');
+                return;
+            }
+            if (isNaN(retirementYear) || retirementYear < new Date().getFullYear()) {
+                showMessageBox('Please enter a valid retirement year (current year or later).', 'error');
+                return;
+            }
+
+            const annualContribution = employeeContribution + employerContribution;
+
+            // Validate allocation percentages sum to 100% ONLY if there are contributions
+            let totalAllocated = 0;
+            portfolioData.forEach(asset => {
+                totalAllocated += asset.allocationPercentage;
+            });
+
+            if (annualContribution > 0 && Math.abs(totalAllocated - 100) > 0.01 && portfolioData.length > 0) {
+                showMessageBox('The sum of allocation percentages must be 100%. Please adjust your distribution.', 'error');
+                return;
+            }
+            // Also, if contributions are > 0 but no portfolio data exists
+            if (portfolioData.length === 0 && annualContribution > 0) {
+                showMessageBox('Cannot calculate projected fees with contributions if there are no portfolio holdings.', 'error');
+                return;
+            }
+
+
+            const currentYear = new Date().getFullYear();
+            const yearsToRetirement = retirementYear - currentYear;
+            if (yearsToRetirement < 0) {
+                 showMessageBox('Retirement year cannot be in the past.', 'error');
+                 return;
+            }
+
+            // Create a deep copy of portfolioData for projection to avoid modifying the original
+            let projectedPortfolio = JSON.parse(JSON.stringify(portfolioData));
+            let totalProjectedFeesOverall = 0;
+            let totalContributionsMade = 0; // To track total contributions over time
+            let initialPortfolioValue = portfolioData.reduce((sum, asset) => sum + asset.value, 0);
+
+
+            // Reset projectedOverallFee for each asset in the projected copy before starting new calculation
+            projectedPortfolio.forEach(asset => {
+                asset.projectedOverallFee = 0;
+            });
+
+            // Data for the chart
+            const yearsLabels = [];
+            const yearlyPortfolioValues = [];
+            const yearlyTotalFees = [];
+
+            for (let yearOffset = 0; yearOffset <= yearsToRetirement; yearOffset++) {
+                const currentProjectionYear = currentYear + yearOffset;
+                yearsLabels.push(currentProjectionYear);
+
+                // Apply growth and contributions
+                if (yearOffset > 0) { // Contributions and growth start from the second year (after initial state)
+                    projectedPortfolio.forEach(asset => {
+                        // Apply overall growth rate to each asset
+                        asset.value *= (1 + annualGrowthRate / 100);
+                        // Add allocated portion of annual contribution ONLY if there are contributions
+                        if (annualContribution > 0) {
+                            asset.value += annualContribution * (asset.allocationPercentage / 100);
+                        }
+                    });
+                    totalContributionsMade += annualContribution; // Accumulate annual contributions
+                }
+
+                let currentYearTotalFee = 0;
+                let currentTotalPortfolioValue = 0;
+
+                // Recalculate fees for all assets based on their current (potentially updated) values
+                projectedPortfolio.forEach(asset => {
+                    asset.calculatedFee = asset.value * (asset.expenseRatio / 100);
+                    asset.projectedOverallFee += asset.calculatedFee; // Accumulate for this specific asset
+                    currentYearTotalFee += asset.calculatedFee;
+                    currentTotalPortfolioValue += asset.value;
+                });
+
+                totalProjectedFeesOverall += currentYearTotalFee; // Accumulate for the overall portfolio
+                yearlyPortfolioValues.push(currentTotalPortfolioValue);
+                yearlyTotalFees.push(currentYearTotalFee);
+            }
+
+            // After the loop, update the original portfolioData with the projectedOverallFee from the copied data
+            // This is crucial for renderPortfolioTable to display the new column.
+            portfolioData.forEach((originalAsset, index) => {
+                originalAsset.projectedOverallFee = projectedPortfolio[index].projectedOverallFee;
+            });
+
+            projectedOverallFeesValue.textContent = `$${totalProjectedFeesOverall.toFixed(2)}`;
+            projectedFeesDisplay.classList.remove('hidden');
+            portfolioChartContainer.classList.remove('hidden');
+            // Pass totalContributionsMade, totalProjectedFeesOverall, and initialPortfolioValue to chart rendering
+            renderPortfolioChart(yearsLabels, yearlyPortfolioValues, yearlyTotalFees, totalContributionsMade, totalProjectedFeesOverall, initialPortfolioValue);
+
+            // Re-render the main table to show the new projected fees column
+            renderPortfolioTable(portfolioData);
+        }
+
+
+        // Event Listeners
+
+        // Process Data Button Click
+        processDataBtn.addEventListener('click', () => {
+            const rawData = portfolioDataTextarea.value;
+            if (rawData.trim() === '') {
+                showMessageBox('Please paste your portfolio data into the text area.', 'info');
+                return;
+            }
+
+            portfolioData = parsePortfolioData(rawData);
+            if (portfolioData.length > 0) {
+                // Initial render, default sort by asset name ascending
+                currentSort = { column: 'assetName', direction: 'asc' };
+                sortPortfolioData('assetName'); // Sort and render
+                calculateProjectedFees(); // Also calculate and render chart immediately
+            } else {
+                // If parsing failed or no data, hide all sections
+                portfolioTableContainer.classList.add('hidden');
+                totalFeesDisplay.classList.add('hidden');
+                contributionsSection.classList.add('hidden');
+                projectedFeesDisplay.classList.add('hidden');
+                portfolioChartContainer.classList.add('hidden');
+                contributionDistributionSection.classList.add('hidden'); // Hide allocation section
+                // Reset summary display if no data
+                totalContributionsValueSpan.textContent = `$${(0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                totalEarningsValueSpan.textContent = `$${(0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                percentageLostToFeesSpan.textContent = `${(0).toFixed(1)}%`;
+                if (portfolioChartInstance) {
+                    portfolioChartInstance.destroy();
+                    portfolioChartInstance = null;
+                }
+            }
+        });
+
+        // Table Header Click for Sorting
+        document.querySelectorAll('th[data-sort-by]').forEach(header => {
+            header.addEventListener('click', (event) => {
+                const sortBy = event.target.dataset.sortBy;
+                if (sortBy && portfolioData.length > 0) {
+                    sortPortfolioData(sortBy);
+                }
+            });
+        });
+
+        // Calculate Projected Fees Button Click
+        calculateProjectedFeesBtn.addEventListener('click', calculateProjectedFees);
+
+        // Initial state: hide sections until data is processed
+        window.onload = () => {
+            portfolioTableContainer.classList.add('hidden');
+            totalFeesDisplay.classList.add('hidden');
+            contributionsSection.classList.add('hidden');
+            projectedFeesDisplay.classList.add('hidden');
+            portfolioChartContainer.classList.add('hidden');
+            contributionDistributionSection.classList.add('hidden'); // Ensure hidden on load
+
+            // Set default retirement year to current year + 26 (arbitrary reasonable retirement age)
+            const currentYear = new Date().getFullYear();
+            retirementYearInput.value = currentYear + 26;
+        };
+
+    </script>
 </body>
 </html>
