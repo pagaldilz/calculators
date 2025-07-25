@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investment Fee Calculators</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            max-width: 700px;
+            margin: 0 auto;
+            opacity: 0.9;
+        }
+        
+        .calculators-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            padding: 20px;
+        }
+        
+        .calculator-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .calculator-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.25);
+        }
+        
+        .card-header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .card-body {
+            padding: 25px;
+        }
+        
+        .card-body p {
+            margin-bottom: 20px;
+            color: #555;
+        }
+        
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            background: #3498db;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 6px;
+            transition: background 0.3s;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        
+        .btn:hover {
+            background: #2980b9;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 30px 20px;
+            color: white;
+            margin-top: 30px;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        @media (max-width: 768px) {
+            .calculators-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Investment Fee Calculators</h1>
+            <p class="subtitle">Compare costs and optimize your investment strategy with our collection of fee analysis tools</p>
+        </header>
+        
+        <main>
+            <div class="calculators-grid">
+                <!-- Calculator 1 -->
+                <div class="calculator-card">
+                    <div class="card-header">
+                        <h2>Mutual Fund Fee Calculator</h2>
+                    </div>
+                    <div class="card-body">
+                        <p>Calculate the long-term impact of expense ratios on your mutual fund investments.</p>
+                        <!-- UPDATE THIS LINK -->
+                        <a href="mutual-fund-calculator.html" class="btn">Open Calculator</a>
+                    </div>
+                </div>
+                
+                <!-- Calculator 2 -->
+                <div class="calculator-card">
+                    <div class="card-header">
+                        <h2>ETF Cost Analyzer</h2>
+                    </div>
+                    <div class="card-body">
+                        <p>Compare trading costs and expense ratios for different ETF investment strategies.</p>
+                        <!-- UPDATE THIS LINK -->
+                        <a href="etf-analyzer.html" class="btn">Open Calculator</a>
+                    </div>
+                </div>
+                
+                <!-- Calculator 3 -->
+                <div class="calculator-card">
+                    <div class="card-header">
+                        <h2>Advisory Fee Comparison</h2>
+                    </div>
+                    <div class="card-body">
+                        <p>See how different advisory fee structures affect your portfolio growth over time.</p>
+                        <!-- UPDATE THIS LINK -->
+                        <a href="advisory-fee-comparison.html" class="btn">Open Calculator</a>
+                    </div>
+                </div>
+                
+                <!-- Calculator 4 -->
+                <div class="calculator-card">
+                    <div class="card-header">
+                        <h2>401(k) Fee Impact</h2>
+                    </div>
+                    <div class="card-body">
+                        <p>Analyze how plan fees affect your retirement savings and compound growth.</p>
+                        <!-- UPDATE THIS LINK -->
+                        <a href="401k-fee-calculator.html" class="btn">Open Calculator</a>
+                    </div>
+                </div>
+                
+                <!-- Calculator 5 -->
+                <div class="calculator-card">
+                    <div class="card-header">
+                        <h2>Robo-Advisor Cost Tool</h2>
+                    </div>
+                    <div class="card-body">
+                        <p>Compare management fees and minimum investments across popular robo-advisors.</p>
+                        <!-- UPDATE THIS LINK -->
+                        <a href="robo-advisor-comparison.html" class="btn">Open Calculator</a>
+                    </div>
+                </div>
+                
+                <!-- Calculator 6 -->
+                <div class="calculator-card">
+                    <div class="card-header">
+                        <h2>Hidden Fee Detector</h2>
+                    </div>
+                    <div class="card-body">
+                        <p>Uncover less obvious fees in investment products that can erode returns.</p>
+                        <!-- UPDATE THIS LINK -->
+                        <a href="hidden-fee-detector.html" class="btn">Open Calculator</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <footer>
+            <p>© 2023 Investment Fee Calculators | Make informed investment decisions</p>
+        </footer>
+    </div>
+</body>
+</html>

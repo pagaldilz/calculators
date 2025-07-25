@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investment Portfolio Analyzer</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4cc9f0;
+            --light-bg: #f8f9fa;
+            --dark-text: #212529;
+            --success: #4ade80;
+            --warning: #facc15;
+            --danger: #f87171;
+        }
+        
+        body {
+            background-color: var(--light-bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .card {
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            margin-bottom: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-header {
+            border-radius: 12px 12px 0 0 !important;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 20px 0;
+        }
+        
+        .fee-display {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--danger);
+        }
+        
+        .total-display {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .fund-table th {
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .fund-table th:hover {
+            background-color: #e9ecef;
+        }
+        
+        .fund-table th i {
+            margin-left: 5px;
+            font-size: 0.8rem;
+        }
+        
+        .slider-container {
+            padding: 10px 0;
+        }
+        
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        
+        .report-section {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .report-title {
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            color: var(--secondary-color);
+        }
+        
+        .metric-card {
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .metric-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .metric-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        
+        .tip-card {
+            background: linear-gradient(135deg, #e0f7fa, #bbdefb);
+            border-left: 4px solid var(--accent-color);
+        }
+        
+        .risk-indicator {
+            height: 10px;
+            border-radius: 5px;
+            margin-top: 5px;
+        }
+        
+        .risk-low { background-color: var(--success); }
+        .risk-medium { background-color: var(--warning); }
+        .risk-high { background-color: var(--danger); }
+        
+        .scenario-btn {
+            margin: 5px;
+        }
+        
+        .export-btn {
+            margin-right: 10px;
+        }
+        
+        .tabs li.is-active a {
+            border-bottom-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+        
+        .tabs a:hover {
+            border-bottom-color: var(--accent-color);
+        }
+        
+        .profile-selector {
+            max-width: 300px;
+        }
+        
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 250px;
+            }
+            
+            .columns.is-multiline > .column {
+                margin-bottom: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <section class="hero is-primary">
+        <div class="hero-body">
+            <div class="container">
+                <h1 class="title is-1">
+                    <i class="fas fa-chart-line"></i> Investment Portfolio Analyzer
+                </h1>
+                <p class="subtitle is-4">
+                    Track fees, visualize growth, and optimize your investments
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <div class="container">
+        <div class="tabs is-centered is-boxed" style="margin-top: 20px;">
+            <ul>
+                <li class="is-active" data-tab="portfolio"><a><i class="fas fa-wallet"></i>&nbsp;Portfolio</a></li>
+                <li data-tab="analysis"><a><i class="fas fa-chart-bar"></i>&nbsp;Analysis</a></li>
+                <li data-tab="scenarios"><a><i class="fas fa-bolt"></i>&nbsp;Scenarios</a></li>
+                <li data-tab="report"><a><i class="fas fa-file-alt"></i>&nbsp;Report</a></li>
+            </ul>
+        </div>
+
+        <!-- Portfolio Tab -->
+        <div id="portfolio-tab" class="tab-content">
+            <div class="columns is-multiline">
+                <div class="column is-12">
+                    <div class="card">
+                        <header class="card-header">
+                            <p class="card-header-title has-text-white">
+                                <i class="fas fa-plus-circle"></i>&nbsp;Add Investment Funds
+                            </p>
+                        </header>
+                        <div class="card-content">
+                            <div class="content">
+                                <div class="field">
+                                    <label class="label">Paste Fund Data (Symbol, Name, Amount, Expense Ratio, Type)</label>
+                                    <div class="control">
+                                        <textarea id="fundData" class="textarea" placeholder="VTSAX,Vanguard Total Stock Market Index Fund,10000,0.04,Index&#10;FXAIX,Fidelity 500 Index Fund,5000,0.015,Index&#10;VTISX,Vanguard Small-Cap Index Fund,3000,0.07,Index" rows="4"></textarea>
+                                    </div>
+                                    <p class="help">Format: Symbol,Name,Amount,Expense Ratio,Type (one fund per line)</p>
+                                </div>
+                                <div class="field is-grouped">
+                                    <div class="control">
+                                        <button id="parseFunds" class="button is-primary">
+                                            <i class="fas fa-paste"></i>&nbsp;Parse Funds
+                                        </button>
+                                    </div>
+                                    <div class="control">
+                                        <button id="addSampleFunds" class="button is-info">
+                                            <i class="fas fa-magic"></i>&nbsp;Add Sample Funds
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="column is-12">
+                    <div class="card">
+                        <header class="card-header">
+                            <p class="card-header-title has-text-white">
+                                <i class="fas fa-table"></i>&nbsp;Investment Funds
+                            </p>
+                        </header>
+                        <div class="card-content">
+                            <div class="content">
+                                <table class="table is-fullwidth is-striped is-hoverable fund-table">
+                                    <thead>
+                                        <tr>
+                                            <th data-sort="symbol">Symbol <i class="fas fa-sort"></i></th>
+                                            <th data-sort="name">Name <i class="fas fa-sort"></i></th>
+                                            <th data-sort="amount" class="has-text-right">Amount ($) <i class="fas fa-sort"></i></th>
+                                            <th data-sort="expense" class="has-text-right">Expense Ratio (%) <i class="fas fa-sort"></i></th>
+                                            <th data-sort="type">Type <i class="fas fa-sort"></i></th>
+                                            <th data-sort="fee" class="has-text-right">Annual Fee ($) <i class="fas fa-sort"></i></th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="fundTableBody">
+                                        <!-- Fund rows will be added here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="column is-12">
+                    <div class="card">
+                        <header class="card-header">
+                            <p class="card-header-title has-text-white">
+                                <i class="fas fa-calculator"></i>&nbsp;Portfolio Summary
+                            </p>
+                        </header>
+                        <div class="card-content">
+                            <div class="content">
+                                <div class="columns is-multiline">
+                                    <div class="column is-3">
+                                        <div class="metric-card">
+                                            <div class="metric-value" id="totalInvested">$0</div>
+                                            <div class="metric-label">Total Invested</div>
+                                        </div>
+                                    </div>
+                                    <div class="column is-3">
+                                        <div class="metric-card">
+                                            <div class="metric-value fee-display" id="totalFees">$0</div>
+                                            <div class="metric-label">Annual Fees</div>
+                                        </div>
+                                    </div>
+                                    <div class="column is-3">
+                                        <div class="metric-card">
+                                            <div class="metric-value" id="feePercentage">0%</div>
+                                            <div class="metric-label">Fee Percentage</div>
+                                        </div>
+                                    </div>
+                                    <div class="column is-3">
+                                        <div class="metric-card">
+                                            <div class="metric-value" id="fundCount">0</div>
+                                            <div class="metric-label">Number of Funds</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analysis Tab -->
+        <div id="analysis-tab" class="tab-content" style="display: none;">
+            <div class="columns is-multiline">
+                <div class="column is-12">
+                    <div class="card">
+                        <header class="card-header">
+                            <p class="card-header-title has-text-white">
+                                <i class="fas fa-sliders-h"></i>&nbsp;Projection Parameters
+                            </p>
+                        </header>
+                        <div class="card-content">
+                            <div class="content">
+                                <div class="columns">
+                                    <div class="column is-6">
+                                        <div class="field">
+                                            <label class="label">Retirement Year</label>
+                                            <div class="control">
+                                                <input id="retirementYear" class="input" type="number" min="2023" max="2100" value="2050">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="column is-6">
+                                        <div class="field">
+                                            <label class="label">Expected Annual Return (%)</label>
+                                            <div class="control">
+                                                <input id="annualReturn" class="input" type="number" min="0" max="30" step="0.1" value="7">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="field">
+                                    <label class="label">Regular Annual Contribution ($)</label>
+                                    <div class="control">
+                                        <input id="annualContribution" class="input" type="number" min="0" value="5000">
+                                    </div>
+                                </div>
+                                
+                                <div class="field">
+                                    <label class="label">Inflation Adjustment (%)</label>
+                                    <div class="control">
+                                        <input id="inflationRate" class="input" type="number" min="0" max="20" step="0.1" value="2.5">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="column is-12">
+                    <div class="card">
+                        <header class="card-header">
+                            <p class="card-header-title has-text-white">
+                                <i class="fas fa-chart-area"></i>&nbsp;Portfolio Growth Projection
+                            </p>
+                        </header>
+                        <div class="card-content">
+                            <div class="content">
+                                <div class="chart-container">
+                                    <canvas id="growthChart"></canvas>
+                                </div>
+                                <div class="columns is-multiline">
+                                    <div class="column is-4">
+                                        <div class="metric-card">
+                                            <div class="metric-value" id="projectedValue">$0</div>
+                                            <div class="metric-label">Projected Value</div>
+                                        </div>
+                                    </div>
+                                    <div class="column is-4">
+                                        <div class="metric-card">
+                                            <div class="metric-value fee-display" id="totalPaidFees">$0</div>
+                                            <div class="metric-label">Total Fees Paid</div>
+                                        </div>
+                                    </div>
+                                    <div class="column is-4">
+                                        <div class="metric-card">
+                                            <div class="metric-value" id="netGrowth">$0</div>
+                                            <div class="metric-label">Net Growth</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="column is-6">
+                    <div class="card">
+                        <header class="card-header">
+                            <p class="card-header-title has-text-white">
+                                <i class="fas fa-balance-scale"></i>&nbsp;Risk Assessment
+                            </p>
+                        </header>
+                        <div class="card-content">
+                            <div class="content">
+                                <div class="columns">
+                                    <div class="column is-6">
+                                        <div class="metric-card">
+                                            <div class="metric-value" id="riskScore">Medium</div>
+                                            <div class="risk-indicator risk-medium"></div>
+                                            <div class="metric-label">Portfolio Risk</div>
+                                        </div>
+                                    </div>
+                                    <div class="column is-6">
+                                        <div class="metric-card">
+                                            <div class="metric-value" id="diversification">Good</div>
+                                            <div class="metric-label">Diversification</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p>Risk is calculated based on fund types. Index funds are considered low risk, while sector funds are high risk.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="column is-6">
+                    <div class="card">
+                        <header class="card-header">
+                            <p class="card-header-title has-text-white">
+                                <i class="fas fa-lightbulb"></i>&nbsp;Investment Tip
+                            </p>
+                        </header>
+                        <div class="card-content tip-card">
+                            <div class="content">
+                                <p class="has-text-weight-bold">Fee Awareness Tip:</p>
+                                <p>Even a small difference in expense ratios can significantly impact your long-term returns. For example, a 0.2% difference on a $100,000 investment over 30 years can cost you over $20,000 in lost growth.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scenarios Tab -->
+        <div id="scenarios-tab" class="tab-content" style="display: none;">
+            <div class="columns is-multiline">
+                <div class="column is-12">
+                    <div class="card">
+                        <header class="card-header">
+                            <p class="card-header-title has-text-white">
+                                <i class="fas fa-simulation"></i>&nbsp;Market Scenarios
+                            </p>
+                        </header>
+                        <div class="card-content">
+                            <div class="content">
+                                <div class="buttons">
+                                    <button class="button is-success scenario-btn" data-scenario="bull">
+                                        <i class="fas fa-arrow-up"></i>&nbsp;Bull Market (+10%)
+                                    </button>
+                                    <button class="button is-warning scenario-btn" data-scenario="normal">
+                                        <i class="fas fa-minus"></i>&nbsp;Normal Market (+7%)
+                                    </button>
+                                    <button class="button is-danger scenario-btn" data-scenario="bear">
+                                        <i class="fas fa-arrow-down"></i>&nbsp;Bear Market (+3%)
+                                    </button>
+                                    <button class="button is-info scenario-btn" data-scenario="custom">
+                                        <i class="fas fa-cog"></i>&nbsp;Custom Scenario
+                                    </button>
+                                </div>
+                                
+                                <div id="customScenario" class="box" style="display: none; margin-top: 20px;">
+                                    <h4 class="title is-5">Custom Scenario Parameters</h4>
+                                    <div class="field">
+                                        <label class="label">Annual Return (%)</label>
+                                        <div class="control">
+                                            <input id="customReturn" class="input" type="number" min="-10" max="30" step="0.1" value="5">
+                                        </div>
+                                    </div>
+                                    <div class="field">
+                                        <label class="label">Scenario Duration (Years)</label>
+                                        <div class="control">
+                                            <input id="customDuration" class="input" type="number" min="1" max="50" value="10">
+                                        </div>
+                                    </div>
+                                    <button id="runCustomScenario" class="button is-primary">Run Custom Scenario</button>
+                                </div>
+                                
+                                <div class="chart-container" style="margin-top: 20px;">
+                                    <canvas id="scenarioChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="column is-12">
+                    <div class="card">
+                        <header class="card-header">
+                            <p class="card-header-title has-text-white">
+                                <i class="fas fa-benchmark"></i>&nbsp;Benchmark Comparison
+                            </p>
+                        </header>
+                        <div class="card-content">
+                            <div class="content">
+                                <div class="columns">
+                                    <div class="column is-6">
+                                        <h4 class="title is-5">Portfolio vs S&P 500</h4>
+                                        <div class="chart-container">
+                                            <canvas id="benchmarkChart"></canvas>
+                                        </div>
+                                    </div>
+                                    <div class="column is-6">
+                                        <h4 class="title is-5">Performance Metrics</h4>
+                                        <table class="table is-fullwidth">
+                                            <thead>
+                                                <tr>
+                                                    <th>Metric</th>
+                                                    <th>Portfolio</th>
+                                                    <th>S&P 500</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>Annual Return</td>
+                                                    <td id="portfolioReturn">7.0%</td>
+                                                    <td id="sp500Return">10.7%</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Volatility</td>
+                                                    <td>12.5%</td>
+                                                    <td>15.2%</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Expense Ratio</td>
+                                                    <td id="portfolioExpense">0.05%</td>
+                                                    <td>0.02%</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Report Tab -->
+        <div id="report-tab" class="tab-content" style="display: none;">
+            <div class="columns is-multiline">
+                <div class="column is-12">
+                    <div class="card">
+                        <header class="card-header">
+                            <p class="card-header-title has-text-white">
+                                <i class="fas fa-file-contract"></i>&nbsp;Portfolio Report
+                            </p>
+                            <div class="card-header-icon">
+                                <div class="buttons">
+                                    <button class="button is-success export-btn" id="exportPDF">
+                                        <i class="fas fa-file-pdf"></i>&nbsp;Export PDF
+                                    </button>
+                                    <button class="button is-info export-btn" id="exportCSV">
+                                        <i class="fas fa-file-csv"></i>&nbsp;Export CSV
+                                    </button>
+                                    <button class="button is-warning export-btn" id="exportPNG">
+                                        <i class="fas fa-image"></i>&nbsp;Export PNG
+                                    </button>
+                                </div>
+                            </div>
+                        </header>
+                        <div class="card-content">
+                            <div class="content" id="reportContent">
+                                <div class="report-section">
+                                    <h3 class="report-title">Portfolio Summary</h3>
+                                    <div class="columns">
+                                        <div class="column is-4">
+                                            <p><strong>Total Invested:</strong> <span id="reportTotalInvested">$0</span></p>
+                                            <p><strong>Annual Fees:</strong> <span id="reportTotalFees">$0</span></p>
+                                            <p><strong>Fee Percentage:</strong> <span id="reportFeePercentage">0%</span></p>
+                                        </div>
+                                        <div class="column is-4">
+                                            <p><strong>Projected Value (2050):</strong> <span id="reportProjectedValue">$0</span></p>
+                                            <p><strong>Total Fees Paid:</strong> <span id="reportTotalPaidFees">$0</span></p>
+                                            <p><strong>Net Growth:</strong> <span id="reportNetGrowth">$0</span></p>
+                                        </div>
+                                        <div class="column is-4">
+                                            <p><strong>Portfolio Risk:</strong> <span id="reportRisk">Medium</span></p>
+                                            <p><strong>Diversification:</strong> <span id="reportDiversification">Good</span></p>
+                                            <p><strong>Number of Funds:</strong> <span id="reportFundCount">0</span></p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="report-section">
+                                    <h3 class="report-title">Investment Funds</h3>
+                                    <table class="table is-fullwidth">
+                                        <thead>
+                                            <tr>
+                                                <th>Symbol</th>
+                                                <th>Name</th>
+                                                <th>Amount</th>
+                                                <th>Expense Ratio</th>
+                                                <th>Type</th>
+                                                <th>Annual Fee</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="reportFundTable">
+                                            <!-- Fund rows will be added here -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <div class="report-section">
+                                    <h3 class="report-title">Key Insights</h3>
+                                    <ul>
+                                        <li>Your portfolio has a <strong>medium risk level</strong> based on fund types.</li>
+                                        <li>You are paying <strong>$<span id="reportFeeAmount">0</span></strong> annually in fees, which is <strong><span id="reportFeePercent">0</span>%</strong> of your portfolio.</li>
+                                        <li>With a 7% annual return, your portfolio could grow to <strong>$<span id="reportFutureValue">0</span></strong> by 2050.</li>
+                                        <li>Over this period, you will pay approximately <strong>$<span id="reportTotalFeesPaid">0</span></strong> in fees.</li>
+                                        <li>Consider reviewing high-fee funds to potentially improve long-term returns.</li>
+                                    </ul>
+                                </div>
+                                
+                                <div class="report-section">
+                                    <h3 class="report-title">Tax Implications</h3>
+                                    <p>Based on current tax laws, your portfolio may be subject to:</p>
+                                    <ul>
+                                        <li>Capital gains tax on realized gains (0-20% depending on income)</li>
+                                        <li>Dividend taxes (0-20% depending on dividend type and income)</li>
+                                        <li>Consider tax-advantaged accounts (401k, IRA) to minimize tax impact</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer" style="margin-top: 50px;">
+        <div class="content has-text-centered">
+            <p>
+                <strong>Investment Portfolio Analyzer</strong> by Financial Planning Tools. 
+                This tool is for educational purposes only and does not constitute financial advice.
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Sample data
+        const sampleFunds = [
+            { symbol: "VTSAX", name: "Vanguard Total Stock Market Index Fund", amount: 10000, expense: 0.04, type: "Index" },
+            { symbol: "FXAIX", name: "Fidelity 500 Index Fund", amount: 5000, expense: 0.015, type: "Index" },
+            { symbol: "VTISX", name: "Vanguard Small-Cap Index Fund", amount: 3000, expense: 0.07, type: "Index" },
+            { symbol: "VXUS", name: "Vanguard Total International Stock Index Fund", amount: 4000, expense: 0.07, type: "International" },
+            { symbol: "VBIAX", name: "Vanguard Balanced Index Fund", amount: 6000, expense: 0.06, type: "Balanced" }
+        ];
+
+        // Global variables
+        let funds = [];
+        let sortDirection = {};
+        let currentYear = new Date().getFullYear();
+        let growthChart, scenarioChart, benchmarkChart;
+
+        // DOM Elements
+        const fundTableBody = document.getElementById('fundTableBody');
+        const reportFundTable = document.getElementById('reportFundTable');
+        const parseFundsBtn = document.getElementById('parseFunds');
+        const addSampleFundsBtn = document.getElementById('addSampleFunds');
+        const retirementYearInput = document.getElementById('retirementYear');
+        const annualReturnInput = document.getElementById('annualReturn');
+        const annualContributionInput = document.getElementById('annualContribution');
+        const inflationRateInput = document.getElementById('inflationRate');
+        const customScenarioDiv = document.getElementById('customScenario');
+        const runCustomScenarioBtn = document.getElementById('runCustomScenario');
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set default retirement year
+            retirementYearInput.value = currentYear + 20;
+            
+            // Initialize charts
+            initCharts();
+            
+            // Add event listeners
+            parseFundsBtn.addEventListener('click', parseFunds);
+            addSampleFundsBtn.addEventListener('click', addSampleFunds);
+            
+            // Tab switching
+            document.querySelectorAll('.tabs li').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // Remove active class from all tabs
+                    document.querySelectorAll('.tabs li').forEach(t => t.classList.remove('is-active'));
+                    
+                    // Add active class to clicked tab
+                    this.classList.add('is-active');
+                    
+                    // Hide all tab contents
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.style.display = 'none';
+                    });
+                    
+                    // Show the selected tab content
+                    const tabName = this.getAttribute('data-tab');
+                    document.getElementById(`${tabName}-tab`).style.display = 'block';
+                    
+                    // Update charts if needed
+                    if (tabName === 'analysis') {
+                        updateGrowthChart();
+                    } else if (tabName === 'scenarios') {
+                        updateScenarioChart();
+                        updateBenchmarkChart();
+                    } else if (tabName === 'report') {
+                        updateReport();
+                    }
+                });
+            });
+            
+            // Add sorting to table headers
+            document.querySelectorAll('.fund-table th[data-sort]').forEach(header => {
+                header.addEventListener('click', function() {
+                    const sortBy = this.getAttribute('data-sort');
+                    sortFunds(sortBy);
+                    renderFundTable();
+                });
+            });
+            
+            // Scenario buttons
+            document.querySelectorAll('.scenario-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const scenario = this.getAttribute('data-scenario');
+                    if (scenario === 'custom') {
+                        customScenarioDiv.style.display = 'block';
+                    } else {
+                        customScenarioDiv.style.display = 'none';
+                        runScenario(scenario);
+                    }
+                });
+            });
+            
+            // Custom scenario
+            runCustomScenarioBtn.addEventListener('click', function() {
+                const customReturn = parseFloat(document.getElementById('customReturn').value);
+                const customDuration = parseInt(document.getElementById('customDuration').value);
+                runCustomScenario(customReturn, customDuration);
+            });
+            
+            // Export buttons
+            document.getElementById('exportPDF').addEventListener('click', exportPDF);
+            document.getElementById('exportCSV').addEventListener('click', exportCSV);
+            document.getElementById('exportPNG').addEventListener('click', exportPNG);
+            
+            // Parameter change events
+            [retirementYearInput, annualReturnInput, annualContributionInput, inflationRateInput].forEach(input => {
+                input.addEventListener('change', updateGrowthChart);
+            });
+            
+            // Add sample funds to start
+            addSampleFunds();
+        });
+
+        // Parse funds from textarea
+        function parseFunds() {
+            const fundData = document.getElementById('fundData').value;
+            const lines = fundData.split('\n');
+            
+            lines.forEach(line => {
+                if (line.trim() === '') return;
+                
+                const parts = line.split(',');
+                if (parts.length !== 5) return;
+                
+                funds.push({
+                    symbol: parts[0].trim(),
+                    name: parts[1].trim(),
+                    amount: parseFloat(parts[2].trim()),
+                    expense: parseFloat(parts[3].trim()),
+                    type: parts[4].trim()
+                });
+            });
+            
+            renderFundTable();
+            updateSummary();
+        }
+
+        // Add sample funds
+        function addSampleFunds() {
+            funds = [...sampleFunds];
+            renderFundTable();
+            updateSummary();
+        }
+
+        // Render fund table
+        function renderFundTable() {
+            fundTableBody.innerHTML = '';
+            
+            funds.forEach((fund, index) => {
+                const fee = fund.amount * fund.expense / 100;
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${fund.symbol}</td>
+                    <td>${fund.name}</td>
+                    <td class="has-text-right">$${fund.amount.toLocaleString()}</td>
+                    <td class="has-text-right">${fund.expense.toFixed(2)}%</td>
+                    <td>${fund.type}</td>
+                    <td class="has-text-right">$${fee.toFixed(2)}</td>
+                    <td>
+                        <button class="button is-small is-danger remove-fund" data-index="${index}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                
+                fundTableBody.appendChild(row);
+            });
+            
+            // Add event listeners to remove buttons
+            document.querySelectorAll('.remove-fund').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    funds.splice(index, 1);
+                    renderFundTable();
+                    updateSummary();
+                });
+            });
+        }
+
+        // Sort funds
+        function sortFunds(sortBy) {
+            if (!sortDirection[sortBy]) {
+                sortDirection[sortBy] = 'asc';
+            } else {
+                sortDirection[sortBy] = sortDirection[sortBy] === 'asc' ? 'desc' : 'asc';
+            }
+            
+            funds.sort((a, b) => {
+                let valA, valB;
+                
+                switch(sortBy) {
+                    case 'symbol':
+                        valA = a.symbol;
+                        valB = b.symbol;
+                        break;
+                    case 'name':
+                        valA = a.name;
+                        valB = b.name;
+                        break;
+                    case 'amount':
+                        valA = a.amount;
+                        valB = b.amount;
+                        break;
+                    case 'expense':
+                        valA = a.expense;
+                        valB = b.expense;
+                        break;
+                    case 'type':
+                        valA = a.type;
+                        valB = b.type;
+                        break;
+                    case 'fee':
+                        valA = a.amount * a.expense / 100;
+                        valB = b.amount * b.expense / 100;
+                        break;
+                    default:
+                        return 0;
+                }
+                
+                if (typeof valA === 'string') {
+                    valA = valA.toLowerCase();
+                    valB = valB.toLowerCase();
+                }
+                
+                if (sortDirection[sortBy] === 'asc') {
+                    return valA > valB ? 1 : -1;
+                } else {
+                    return valA < valB ? 1 : -1;
+                }
+            });
+        }
+
+        // Update summary
+        function updateSummary() {
+            const totalInvested = funds.reduce((sum, fund) => sum + fund.amount, 0);
+            const totalFees = funds.reduce((sum, fund) => sum + (fund.amount * fund.expense / 100), 0);
+            const feePercentage = totalInvested > 0 ? (totalFees / totalInvested * 100).toFixed(2) : 0;
+            
+            document.getElementById('totalInvested').textContent = `$${totalInvested.toLocaleString()}`;
+            document.getElementById('totalFees').textContent = `$${totalFees.toFixed(2)}`;
+            document.getElementById('feePercentage').textContent = `${feePercentage}%`;
+            document.getElementById('fundCount').textContent = funds.length;
+        }
+
+        // Initialize charts
+        function initCharts() {
+            const growthCtx = document.getElementById('growthChart').getContext('2d');
+            growthChart = new Chart(growthCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'Portfolio Value',
+                            data: [],
+                            borderColor: '#4361ee',
+                            backgroundColor: 'rgba(67, 97, 238, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Fees Paid',
+                            data: [],
+                            borderColor: '#f87171',
+                            backgroundColor: 'rgba(248, 113, 113, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Year'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Value ($)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            const scenarioCtx = document.getElementById('scenarioChart').getContext('2d');
+            scenarioChart = new Chart(scenarioCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Bull Market', 'Normal Market', 'Bear Market'],
+                    datasets: [{
+                        label: 'Portfolio Value',
+                        data: [0, 0, 0],
+                        backgroundColor: [
+                            'rgba(76, 201, 240, 0.7)',
+                            'rgba(67, 97, 238, 0.7)',
+                            'rgba(248, 113, 113, 0.7)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Portfolio Value ($)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + (value / 1000) + 'k';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            const benchmarkCtx = document.getElementById('benchmarkChart').getContext('2d');
+            benchmarkChart = new Chart(benchmarkCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Portfolio', 'S&P 500'],
+                    datasets: [{
+                        label: 'Annual Return (%)',
+                        data: [7.0, 10.7],
+                        backgroundColor: [
+                            'rgba(67, 97, 238, 0.7)',
+                            'rgba(76, 201, 240, 0.7)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Annual Return (%)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update growth chart
+        function updateGrowthChart() {
+            const retirementYear = parseInt(retirementYearInput.value);
+            const annualReturn = parseFloat(annualReturnInput.value) / 100;
+            const annualContribution = parseFloat(annualContributionInput.value);
+            const inflationRate = parseFloat(inflationRateInput.value) / 100;
+            
+            const years = [];
+            const portfolioValues = [];
+            const feesPaid = [];
+            
+            let currentValue = funds.reduce((sum, fund) => sum + fund.amount, 0);
+            let totalFees = 0;
+            
+            for (let year = currentYear; year <= retirementYear; year++) {
+                years.push(year);
+                
+                // Calculate annual fees
+                const annualFee = funds.reduce((sum, fund) => sum + (fund.amount * fund.expense / 100), 0);
+                totalFees += annualFee;
+                
+                // Apply growth
+                currentValue = currentValue * (1 + annualReturn) + annualContribution;
+                
+                // Adjust for inflation
+                currentValue = currentValue / (1 + inflationRate);
+                
+                portfolioValues.push(currentValue);
+                feesPaid.push(totalFees);
+            }
+            
+            // Update chart data
+            growthChart.data.labels = years;
+            growthChart.data.datasets[0].data = portfolioValues;
+            growthChart.data.datasets[1].data = feesPaid;
+            growthChart.update();
+            
+            // Update summary metrics
+            document.getElementById('projectedValue').textContent = `$${currentValue.toLocaleString(undefined, {maximumFractionDigits: 0})}`;
+            document.getElementById('totalPaidFees').textContent = `$${totalFees.toLocaleString(undefined, {maximumFractionDigits: 0})}`;
+            document.getElementById('netGrowth').textContent = `$${(currentValue - totalFees).toLocaleString(undefined, {maximumFractionDigits: 0})}`;
+        }
+
+        // Run scenario
+        function runScenario(scenario) {
+            let returnRate;
+            
+            switch(scenario) {
+                case 'bull':
+                    returnRate = 0.10;
+                    break;
+                case 'normal':
+                    returnRate = 0.07;
+                    break;
+                case 'bear':
+                    returnRate = 0.03;
+                    break;
+                default:
+                    returnRate = 0.07;
+            }
+            
+            const currentValue = funds.reduce((sum, fund) => sum + fund.amount, 0);
+            const futureValue = currentValue * Math.pow(1 + returnRate, 10);
+            
+            // Update chart
+            scenarioChart.data.datasets[0].data = scenario === 'bull' ? [futureValue, 0, 0] :
+                                                scenario === 'normal' ? [0, futureValue, 0] :
+                                                [0, 0, futureValue];
+            scenarioChart.update();
+        }
+
+        // Run custom scenario
+        function runCustomScenario(returnRate, duration) {
+            const currentValue = funds.reduce((sum, fund) => sum + fund.amount, 0);
+            const futureValue = currentValue * Math.pow(1 + returnRate/100, duration);
+            
+            // Update chart with custom data
+            scenarioChart.data.labels = ['Custom Scenario'];
+            scenarioChart.data.datasets[0].data = [futureValue];
+            scenarioChart.data.datasets[0].backgroundColor = ['rgba(156, 136, 255, 0.7)'];
+            scenarioChart.update();
+        }
+
+        // Update scenario chart
+        function updateScenarioChart() {
+            // Reset to default scenarios
+            scenarioChart.data.labels = ['Bull Market', 'Normal Market', 'Bear Market'];
+            scenarioChart.data.datasets[0].data = [0, 0, 0];
+            scenarioChart.data.datasets[0].backgroundColor = [
+                'rgba(76, 201, 240, 0.7)',
+                'rgba(67, 97, 238, 0.7)',
+                'rgba(248, 113, 113, 0.7)'
+            ];
+            scenarioChart.update();
+        }
+
+        // Update benchmark chart
+        function updateBenchmarkChart() {
+            // In a real app, this would fetch actual benchmark data
+            benchmarkChart.data.datasets[0].data = [7.0, 10.7];
+            benchmarkChart.update();
+        }
+
+        // Update report
+        function updateReport() {
+            const totalInvested = funds.reduce((sum, fund) => sum + fund.amount, 0);
+            const totalFees = funds.reduce((sum, fund) => sum + (fund.amount * fund.expense / 100), 0);
+            const feePercentage = totalInvested > 0 ? (totalFees / totalInvested * 100).toFixed(2) : 0;
+            
+            // Update report values
+            document.getElementById('reportTotalInvested').textContent = `$${totalInvested.toLocaleString()}`;
+            document.getElementById('reportTotalFees').textContent = `$${totalFees.toFixed(2)}`;
+            document.getElementById('reportFeePercentage').textContent = `${feePercentage}%`;
+            document.getElementById('reportFundCount').textContent = funds.length;
+            
+            // Update projected values (same as analysis tab)
+            document.getElementById('reportProjectedValue').textContent = document.getElementById('projectedValue').textContent;
+            document.getElementById('reportTotalPaidFees').textContent = document.getElementById('totalPaidFees').textContent;
+            document.getElementById('reportNetGrowth').textContent = document.getElementById('netGrowth').textContent;
+            
+            // Update risk and diversification
+            document.getElementById('reportRisk').textContent = document.getElementById('riskScore').textContent;
+            document.getElementById('reportDiversification').textContent = document.getElementById('diversification').textContent;
+            
+            // Update insights
+            document.getElementById('reportFeeAmount').textContent = totalFees.toFixed(2);
+            document.getElementById('reportFeePercent').textContent = feePercentage;
+            document.getElementById('reportFutureValue').textContent = document.getElementById('projectedValue').textContent.replace('$', '');
+            document.getElementById('reportTotalFeesPaid').textContent = document.getElementById('totalPaidFees').textContent.replace('$', '');
+            
+            // Update fund table in report
+            reportFundTable.innerHTML = '';
+            funds.forEach(fund => {
+                const fee = fund.amount * fund.expense / 100;
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${fund.symbol}</td>
+                    <td>${fund.name}</td>
+                    <td>$${fund.amount.toLocaleString()}</td>
+                    <td>${fund.expense.toFixed(2)}%</td>
+                    <td>${fund.type}</td>
+                    <td>$${fee.toFixed(2)}</td>
+                `;
+                reportFundTable.appendChild(row);
+            });
+        }
+
+        // Export functions
+        function exportPDF() {
+            alert('PDF export functionality would be implemented here. In a real application, this would generate a PDF report.');
+        }
+        
+        function exportCSV() {
+            let csvContent = "Symbol,Name,Amount,Expense Ratio,Type,Annual Fee\n";
+            funds.forEach(fund => {
+                const fee = fund.amount * fund.expense / 100;
+                csvContent += `${fund.symbol},${fund.name},${fund.amount},${fund.expense},${fund.type},${fee}\n`;
+            });
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'investment_portfolio.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        function exportPNG() {
+            alert('PNG export functionality would be implemented here. In a real application, this would save the chart as an image.');
+        }
+    </script>
+</body>
+</html>
